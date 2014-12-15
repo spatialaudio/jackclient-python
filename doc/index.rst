@@ -1,4 +1,8 @@
+.. default-role:: py:obj
+
 .. include:: ../README.rst
+
+.. default-role:: None
 
 API Documentation
 -----------------

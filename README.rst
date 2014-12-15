@@ -114,14 +114,14 @@ These functions return the newly created port, so you can save it for later::
    out2 = client.outports.register("output_2")
 
 To see what you can do with the returned objects, have a look at the
-documentation of the class :class:`jack.OwnPort`.
+documentation of the class `jack.OwnPort`.
 
 You can also check what other JACK ports are available::
 
    portlist = client.get_ports()
 
 If you want, you can also set all kinds of callback functions, for details see
-the API documentation for the class :class:`jack.Client`.
+the API documentation for the class `jack.Client`.
 
 Once you are ready to run, you should activate your client::
 
