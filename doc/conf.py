@@ -80,7 +80,7 @@ copyright = '2014, ' + authors
 #version = '0.0.0'
 # The full version, including alpha/beta/rc tags.
 try:
-    release = check_output(['git', 'describe', '--tags', '--always', '--dirty'])
+    release = check_output(['git', 'describe', '--tags', '--always'])
     release = release.decode().strip()
 except Exception:
     release = '<unknown>'
