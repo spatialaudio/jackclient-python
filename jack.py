@@ -321,6 +321,7 @@ class Client(object):
         ----------------
         use_exact_name : bool
             Whether an error should be raised if `name` is not unique.
+            See :attr:`Status.name_not_unique`.
         no_start_server : bool
             Do not automatically start the JACK server when it is not
             already running.  This option is always selected if
@@ -350,10 +351,10 @@ class Client(object):
             args[1] |= _lib.JackSessionID
             args.append(_ffi.new("char[]", session_id.encode()))
         self._ptr = _lib.jack_client_open(*args)
+        self.status = Status(status[0])
+        """JACK status.  See :class:`Status`."""
         if not self._ptr:
-            status = status[0]
-            raise JackError(
-                "{0} ({1})".format(decode_status(status), hex(status)))
+            raise JackError(str(self.status))
 
         self._inports = self.Ports(self, _lib.JackPortIsInput)
         self._outports = self.Ports(self, _lib.JackPortIsOutput)
@@ -674,10 +675,9 @@ class Client(object):
             User-supplied function that is called whenever the JACK
             daemon is shutdown.  It must have this signature::
 
-                callback(status:int, reason:str, userdata) -> None
+                callback(status:Status, reason:str, userdata) -> None
 
-            The argument `status` can be decoded with
-            :func:`decode_status`.
+            The argument `status` is of type :class:`jack.Status`.
 
             Note that after server shutdown, `self`
             is *not* deallocated by libjack, the application is
@@ -694,7 +694,8 @@ class Client(object):
         """
         @self._callback("JackInfoShutdownCallback")
         def callback_wrapper(code, reason, _):
-            return callback(code, _ffi.string(reason).decode(), userdata)
+            return callback(Status(code), _ffi.string(reason).decode(),
+                            userdata)
 
         _lib.jack_on_info_shutdown(self._ptr, callback_wrapper, _ffi.NULL)
 
@@ -1513,35 +1514,98 @@ class OwnPort(Port):
         return np.frombuffer(self.get_buffer(), dtype=np.float32)
 
 
-def decode_status(status):
-    """Return string corresponding to ``JackStatus`` error code."""
-    if status & _lib.JackInvalidOption:
-        msg = "The operation contained an invalid or unsupported option"
-    elif status & _lib.JackShmFailure:
-        msg = "Unable to access shared memory"
-    elif status & _lib.JackVersionError:
-        msg = "Client's protocol version does not match"
-    elif status & _lib.JackClientZombie:
-        msg = "Zombie!"
-    elif status & _lib.JackNoSuchClient:
-        msg = "Requested client does not exist"
-    elif status & _lib.JackLoadFailure:
-        msg = "Unable to load internal client"
-    elif status & _lib.JackInitFailure:
-        msg = "Unable to initialize client"
-    elif status & _lib.JackBackendError:
-        msg = "Backend error"
-    elif status & _lib.JackNameNotUnique & _lib.JackFailure:
-        msg = "The client name is not unique"
-    elif status & _lib.JackServerFailed:
-        msg = "Unable to connect to the JACK server"
-    elif status & _lib.JackServerError:
-        msg = "Communication error with the JACK server"
-    elif status & _lib.JackFailure:
-        msg = "Overall operation failed"
-    else:
-        msg = "Unknown error"
-    return msg
+class Status(object):
+
+    """Representation of the JACK status bits."""
+
+    def __init__(self, statuscode):
+        self._code = statuscode
+
+    def __repr__(self):
+        flags = ", ".join(name for name in dir(self)
+                          if not name.startswith('_') and getattr(self, name))
+        if not flags:
+            flags = "no flags set"
+        return "<JACK status 0x{0:x}: {1}>".format(self._code, flags)
+
+    @property
+    def failure(self):
+        """Overall operation failed."""
+        return bool(self._code & _lib.JackFailure)
+
+    @property
+    def invalid_option(self):
+        """The operation contained an invalid or unsupported option."""
+        return bool(self._code & _lib.JackInvalidOption)
+
+    @property
+    def name_not_unique(self):
+        """The desired client name was not unique.
+
+        With the `use_exact_name` option of :class:`Client`, this
+        situation is fatal.
+        Otherwise, the name is modified by appending a dash and a
+        two-digit number in the range "-01" to "-99".
+        :attr:`Client.name` will return the exact string that was used.
+        If the specified `name` plus these extra characters would be too
+        long, the open fails instead.
+
+        """
+        return bool(self._code & _lib.JackNameNotUnique)
+
+    @property
+    def server_started(self):
+        """The JACK server was started for this :class:`Client`.
+
+        Otherwise, it was running already.
+
+        """
+        return bool(self._code & _lib.JackServerStarted)
+
+    @property
+    def server_failed(self):
+        """Unable to connect to the JACK server."""
+        return bool(self._code & _lib.JackServerFailed)
+
+    @property
+    def server_error(self):
+        """Communication error with the JACK server."""
+        return bool(self._code & _lib.JackServerError)
+
+    @property
+    def no_such_client(self):
+        """Requested client does not exist."""
+        return bool(self._code & _lib.JackNoSuchClient)
+
+    @property
+    def load_failure(self):
+        """Unable to load internal client."""
+        return bool(self._code & _lib.JackLoadFailure)
+
+    @property
+    def init_failure(self):
+        """Unable to initialize client."""
+        return bool(self._code & _lib.JackInitFailure)
+
+    @property
+    def shm_failure(self):
+        """Unable to access shared memory."""
+        return bool(self._code & _lib.JackShmFailure)
+
+    @property
+    def version_error(self):
+        """Client's protocol version does not match."""
+        return bool(self._code & _lib.JackVersionError)
+
+    @property
+    def backend_error(self):
+        """Backend error."""
+        return bool(self._code & _lib.JackBackendError)
+
+    @property
+    def client_zombie(self):
+        """Client zombified failure."""
+        return bool(self._code & _lib.JackClientZombie)
 
 
 class JackError(Exception):

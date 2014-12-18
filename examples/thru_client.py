@@ -21,7 +21,10 @@ import signal
 
 client = jack.Client("Through-Client")
 
-# TODO: check for status: JackServerStarted and JackNameNotUnique
+if client.status.server_started:
+    print("JACK server started")
+if client.status.name_not_unique:
+    print("unique name {0!r} assigned".format(client.name))
 
 event = threading.Event()
 
