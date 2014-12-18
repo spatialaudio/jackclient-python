@@ -2,7 +2,7 @@
 
 .. include:: ../README.rst
 
-.. default-role:: None
+.. default-role::
 
 API Documentation
 -----------------
