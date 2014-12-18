@@ -41,7 +41,7 @@ client.set_process_callback(process)
 
 def shutdown(status, reason, userdata):
     print("JACK shutdown!")
-    print("status:", jack.decode_status(status))
+    print("status:", status)
     print("reason:", reason)
     event.set()
 
