@@ -208,7 +208,14 @@ float jack_get_xrun_delayed_usecs(jack_client_t* client);
 #define	EEXIST 17
 """)
 
-_lib = _ffi.dlopen("jack")
+
+_verify_includes = """
+    #include <jack/jack.h>
+    #include <jack/ringbuffer.h>
+    #include <jack/statistics.h>
+    #include <jack/types.h>
+"""
+_lib = _ffi.verify(_verify_includes, libraries = ["jack"])
 
 CALL_AGAIN = 0
 """Possible return value for process callback."""
