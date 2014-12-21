@@ -375,7 +375,7 @@ class Client(object):
 
         self._inports = self.Ports(self, _lib.JackPortIsInput)
         self._outports = self.Ports(self, _lib.JackPortIsOutput)
-        self._keepalive = []
+        self._callback_ptrs = {}
 
     # Avoid confusion if something goes wrong before opening the client:
     _ptr = _ffi.NULL
@@ -1236,7 +1236,7 @@ class Client(object):
         """Wrapper for ffi.callback() that keeps callback alive."""
         def callback_decorator(python_callable):
             function_ptr = _ffi.callback(cdecl, python_callable, **kwargs)
-            self._keepalive.append(function_ptr)
+            self._callback_ptrs[cdecl] = function_ptr
             return function_ptr
         return callback_decorator
 
@@ -1724,10 +1724,10 @@ def _set_some_function(callback, setter):
         def callback_wrapper(msg):
             return callback(_ffi.string(msg).decode())
 
-        _keepalive[setter] = callback_wrapper
+        _callback_ptrs[setter] = callback_wrapper
     setter(callback_wrapper)
 
-_keepalive = {}
+_callback_ptrs = {}
 
 
 def _check(error_code, msg):
