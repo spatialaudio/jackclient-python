@@ -189,7 +189,23 @@ void jack_set_info_function(void (*func)(const char*));
 void jack_free(void* ptr);
 
 /* ringbuffer.h */
+typedef ... jack_ringbuffer_data_t ;
 typedef ... jack_ringbuffer_t ;
+
+jack_ringbuffer_t *jack_ringbuffer_create(size_t sz);
+void jack_ringbuffer_free(jack_ringbuffer_t *rb);
+/* not implemented: jack_ringbuffer_get_read_vector, really fast uses only */
+/* not implemented: jack_ringbuffer_get_write_vector, really fast uses only */
+size_t jack_ringbuffer_read(jack_ringbuffer_t *rb, char *dest, size_t cnt);
+size_t jack_ringbuffer_peek(jack_ringbuffer_t *rb, char *dest, size_t cnt);
+void jack_ringbuffer_read_advance(jack_ringbuffer_t *rb, size_t cnt);
+size_t jack_ringbuffer_read_space(const jack_ringbuffer_t *rb);
+int jack_ringbuffer_mlock(jack_ringbuffer_t *rb);
+void jack_ringbuffer_reset(jack_ringbuffer_t *rb);
+/* not implemented: jack_ringbuffer_reset_size */
+size_t jack_ringbuffer_write(jack_ringbuffer_t *rb, const char *src, size_t cnt);
+/* not implemented: jack_ringbuffer_write_advance, really fast uses only */
+size_t jack_ringbuffer_write_space(const jack_ringbuffer_t *rb);
 
 /* transport.h */
 
@@ -1538,6 +1554,69 @@ class OwnPort(Port):
         """
         import numpy as np
         return np.frombuffer(self.get_buffer(), dtype=np.float32)
+
+
+def _maybe_bytes(data):
+    if type(data) is bytes:
+        data_ptr = _ffi.new("char[]", len(data))
+        data_ptr[0:len(data)] = data
+        return data_ptr
+    return data
+
+def _returns_bytes(fun):
+    def wrapper(self, cnt):
+        ret_cnt, data = fun(self, cnt)
+        return bytes(_ffi.buffer(data, min(cnt, ret_cnt)))
+    return wrapper
+
+class RingBuffer(object):
+    def __init__(self, size=256):
+        ptr = _lib.jack_ringbuffer_create(size)
+        if not ptr:
+            raise JackError(
+                "Could not create ringbuffer of size {0}".format(size))
+        self._ptr = _ffi.gc(ptr, _lib.jack_ringbuffer_free)
+        self._size = size
+
+    def _read(self, cnt):
+        data = _ffi.new("char[]", cnt)
+        ret_cnt = _lib.jack_ringbuffer_read(self._ptr, data, _ffi.sizeof(data))
+        return ret_cnt, data
+    read = _returns_bytes(_read)
+
+    def _peek(self, cnt):
+        data = _ffi.new("char[]", cnt)
+        ret_cnt = _lib.jack_ringbuffer_peek(self._ptr, data, _ffi.sizeof(data))
+        return ret_cnt, data
+    peek = _returns_bytes(_peek)
+
+    def write(self, data):
+        data = _maybe_bytes(data)
+        return _lib.jack_ringbuffer_write(self._ptr, data, _ffi.sizeof(data))
+
+    def read_advance(self, cnt):
+        _lib.jack_ringbuffer_read_advance(self._ptr, cnt)
+
+    def mlock(self):
+        return _lib.jack_ringbuffer_mlock(self._ptr)
+
+    def reset(self):
+        _lib.jack_ringbuffer_reset(self._ptr)
+
+    @property
+    def read_space(self):
+        return _lib.jack_ringbuffer_read_space(self._ptr)
+
+    @property
+    def write_space(self):
+        return _lib.jack_ringbuffer_write_space(self._ptr)
+
+    @property
+    def size(self):
+        return self._size
+
+    def __repr__(self):
+        return "jack.{0.__class__.__name__}({0.read_space}/{0.size})".format(self)
 
 
 class Status(object):
