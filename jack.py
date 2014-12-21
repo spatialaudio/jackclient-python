@@ -305,7 +305,7 @@ class Client(object):
             while self._portlist:
                 self._portlist[0].unregister()
 
-    def __init__(self, name, use_exact_name=False, no_start_server=False,
+    def __init__(self, name, use_exact_name=False, no_start_server=True,
                  servername=None, session_id=None):
         """Create a new JACK client.
 
