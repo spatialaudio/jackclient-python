@@ -254,7 +254,8 @@ class Client(object):
         def __repr__(self):
             return self._portlist.__repr__()
 
-        def register(self, shortname, is_terminal=False, is_physical=False):
+        def register(self, shortname, is_terminal=False, is_physical=False,
+                     is_midi=False):
             """Create a new input/output port.
 
             The new :class:`OwnPort` object is automatically added to
@@ -285,6 +286,8 @@ class Client(object):
             is_physical : bool
                 If ``True`` the port corresponds to some kind of physical
                 I/O connector.
+            is_midi : bool
+                If ``True`` the port will be a midi port, JACK_DEFAULT_MIDI_TYPE
 
             Returns
             -------
@@ -293,7 +296,7 @@ class Client(object):
 
             """
             port = self._client._register_port(shortname, is_terminal,
-                                               is_physical, self._flag)
+                                               is_physical, is_midi, self._flag)
             self._portlist.append(port)
             return port
 
@@ -1220,15 +1223,16 @@ class Client(object):
             return function_ptr
         return callback_decorator
 
-    def _register_port(self, shortname, is_terminal, is_physical, flags):
+    def _register_port(self, shortname, is_terminal, is_physical,
+                       is_midi, flags):
         """Create a new port."""
         if is_terminal:
             flags |= _lib.JackPortIsTerminal
         if is_physical:
             flags |= _lib.JackPortIsPhysical
+        port_type = ["32 bit float mono audio", "8 bit raw midi"][is_midi].encode()
         port_ptr = _lib.jack_port_register(self._ptr, shortname.encode(),
-                                           "32 bit float mono audio".encode(),
-                                           flags, 0)
+                                           port_type, flags, 0)
         if not port_ptr:
             raise JackError(
                 "{0!r}: port registration failed".format(shortname))
