@@ -254,7 +254,7 @@ class Client(object):
         def __repr__(self):
             return self._portlist.__repr__()
 
-        def register(self, shortname, is_terminal=False):
+        def register(self, shortname, is_terminal=False, is_physical=False):
             """Create a new input/output port.
 
             The new :class:`OwnPort` object is automatically added to
@@ -282,6 +282,9 @@ class Client(object):
                 Audio synthesizers, I/O hardware interface clients, HDR
                 systems are examples of clients that would set this flag for
                 their ports.
+            is_physical : bool
+                If ``True`` the port corresponds to some kind of physical
+                I/O connector.
 
             Returns
             -------
@@ -290,7 +293,7 @@ class Client(object):
 
             """
             port = self._client._register_port(shortname, is_terminal,
-                                               self._flag)
+                                               is_physical, self._flag)
             self._portlist.append(port)
             return port
 
@@ -1217,10 +1220,12 @@ class Client(object):
             return function_ptr
         return callback_decorator
 
-    def _register_port(self, shortname, is_terminal, flags):
+    def _register_port(self, shortname, is_terminal, is_physical, flags):
         """Create a new port."""
         if is_terminal:
             flags |= _lib.JackPortIsTerminal
+        if is_physical:
+            flags |= _lib.JackPortIsPhysical
         port_ptr = _lib.jack_port_register(self._ptr, shortname.encode(),
                                            "32 bit float mono audio".encode(),
                                            flags, 0)
