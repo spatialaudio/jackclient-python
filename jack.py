@@ -187,6 +187,35 @@ void jack_set_error_function(void (*func)(const char*));
 void jack_set_info_function(void (*func)(const char*));
 void jack_free(void* ptr);
 
+/* ringbuffer.h */
+
+typedef struct {
+    char* buf;
+    size_t len;
+} jack_ringbuffer_data_t;
+typedef struct {
+    char* buf;
+    volatile size_t write_ptr;
+    volatile size_t read_ptr;
+    size_t size;
+    size_t size_mask;
+    int mlocked;
+} jack_ringbuffer_t;
+jack_ringbuffer_t* jack_ringbuffer_create(size_t sz);
+void jack_ringbuffer_free(jack_ringbuffer_t* rb);
+void jack_ringbuffer_get_read_vector(const jack_ringbuffer_t* rb, jack_ringbuffer_data_t* vec);
+void jack_ringbuffer_get_write_vector(const jack_ringbuffer_t* rb, jack_ringbuffer_data_t* vec);
+size_t jack_ringbuffer_read(jack_ringbuffer_t* rb, char* dest, size_t cnt);
+size_t jack_ringbuffer_peek(jack_ringbuffer_t* rb, char* dest, size_t cnt);
+void jack_ringbuffer_read_advance(jack_ringbuffer_t* rb, size_t cnt);
+size_t jack_ringbuffer_read_space(const jack_ringbuffer_t* rb);
+int jack_ringbuffer_mlock(jack_ringbuffer_t* rb);
+void jack_ringbuffer_reset(jack_ringbuffer_t* rb);
+void jack_ringbuffer_reset_size (jack_ringbuffer_t* rb, size_t sz);
+size_t jack_ringbuffer_write(jack_ringbuffer_t* rb, const unsigned char* src, size_t cnt);
+void jack_ringbuffer_write_advance(jack_ringbuffer_t* rb, size_t cnt);
+size_t jack_ringbuffer_write_space(const jack_ringbuffer_t* rb);
+
 /* transport.h */
 
 int  jack_transport_locate(jack_client_t* client, jack_nframes_t frame);
@@ -1795,6 +1824,222 @@ class Ports(object):
         """
         while self._portlist:
             self._portlist[0].unregister()
+
+
+class RingBuffer(object):
+    """JACK's lock-free ringbuffer.
+
+    These are a good way to pass data between threads, when streaming
+    realtime data to slower media, like audio file playback or recording
+
+    """
+
+    def __init__(self, size):
+        """Allocates a ringbuffer data structure of a specified size.
+
+        Parameters
+        ----------
+        size : int
+            Size in bytes of the ringbuffer. JACK will declare a buffer of at
+            least this size, but one of the spaces is reserved. Use
+            :meth:`write_space` to determine the actual size available
+            for writing.
+
+        """
+        ptr = _lib.jack_ringbuffer_create(size)
+        if not ptr:
+            raise JackError("Could not create ringbuffer")
+        self._ptr = _ffi.gc(ptr, _lib.jack_ringbuffer_free)
+
+    def read(self, size):
+        """Read data from the ringbuffer.
+
+        Parameters
+        ----------
+        size : int
+            Number of bytes to read.
+
+        Returns
+        -------
+        buffer
+            A python buffer object containing the data requested.
+            Note that the buffer might contain less bytes than requested
+            if the buffer has none left.
+
+        """
+        data = _ffi.new("unsigned char[]", size)
+        size = _lib.jack_ringbuffer_read(self._ptr, data, size)
+        return _ffi.buffer(data, size)
+
+    def peek(self, size):
+        """Peek at data from the ringbuffer.
+
+        Opposed to :meth:`read` this function does not move the read pointer.
+        Thus it's a convenient way to inspect data in the ringbuffer in a
+        continous fashion. The price is that the data is copied into a user
+        provided buffer. For "raw" non-copy inspection of the data in the
+        ringbuffer use :attr:`read_buffers`.
+
+        Parameters
+        ----------
+        size : int
+            Number of bytes to peek.
+
+        Returns
+        -------
+            A python buffer object containing at the data requested.
+            Note that the buffer might contain less bytes than requested
+            if the buffer has none left.
+
+        """
+        data = _ffi.new("unsigned char[]", size)
+        size = _lib.jack_ringbuffer_peek(self._ptr, data, size)
+        return _ffi.buffer(data, size)
+
+    def write(self, data):
+        """Write data to the ringbuffer.
+
+        Parameters
+        ----------
+        data : buffer
+            Bytes to be written to the ringbuffer.
+
+        Returns
+        -------
+            The number of bytes writen, which could be less than the length
+            of `data` if there was no space left.
+
+        """
+        try:
+            data = _ffi.from_buffer(data)
+        except AttributeError:
+            pass  # from_buffer() not supported
+        except TypeError:
+            pass  # input is not a buffer
+        return _lib.jack_ringbuffer_write(self._ptr, data, len(data))
+
+    def read_advance(self, size):
+        """Advance the read pointer.
+
+        After data has been read from the ringbuffer using the python buffer
+        objects returned by :attr:`read_buffers` or :meth:`peek`, use this
+        method to advance the buffer pointers, making that space available for
+        future write operations.
+
+        Parameters
+        ----------
+        size : int
+            The number of bytes to advance.
+
+        """
+        _lib.jack_ringbuffer_read_advance(self._ptr, size)
+
+    def write_advance(self, size):
+        """Advance the write pointer.
+
+        After data has been written the ringbuffer using the python buffer
+        objects returned by :attr:`write_buffers`, use this method to
+        advance the buffer pointer, making the data available for future
+        read operations.
+
+        Parameters
+        ----------
+        size : int
+            The number of bytes to advance.
+
+        """
+        _lib.jack_ringbuffer_write_advance(self._ptr, size)
+
+    def mlock(self):
+        """Lock a ringbuffer data block into memory.
+
+        Uses the mlock() system call.
+        This prevents the RingBuffer from being paged to swap.
+
+        This is not a realtime operation.
+
+        """
+        _check(_lib.jack_ringbuffer_mlock(self._ptr),
+               "Error mlocking the RingBuffer data")
+
+    def reset(self, size=None):
+        """Reset the read and write pointers, making an empty buffer.
+
+        This is not thread safe.
+
+        Other Parameters
+        ----------------
+        size : int
+            Optional new size for the ringbuffer,
+            that must be less than allocated size.
+
+        """
+        if size is None:
+            _lib.jack_ringbuffer_reset(self._ptr)
+        else:
+            _lib.jack_ringbuffer_reset_size(self._ptr, size)
+
+    @property
+    def read_buffers(self):
+        """Contains two buffer objects that can be read directly.
+
+        Two are needed because the data to be read may be split across the
+        end of the ringbuffer. Either of them could be 0 length.
+
+        This can be used as a no-copy version of :meth:`peek` or :meth:`read`.
+
+        After the operation :meth:`read_advance` can be used to advance the
+        buffer pointers, making that space available for future write
+        operations.
+
+        Note: After a read pointer moving operation these buffers are no
+        longer valid and one should use this property to get new ones.
+
+        """
+        vectors = _ffi.new("jack_ringbuffer_data_t[2]")
+        _lib.jack_ringbuffer_get_read_vector(self._ptr, vectors)
+        return (
+            _ffi.buffer(vectors[0].buf,vectors[0].len),
+            _ffi.buffer(vectors[1].buf,vectors[1].len)
+        )
+
+    @property
+    def write_buffers(self):
+        """Contains two buffer objects that can be written to directly.
+
+        Two are needed because the space available for writing may be split
+        across the end of the ringbuffer. Either of them could be 0 length.
+
+        This can be used as a no-copy version of :meth:`write`.
+
+        After the operation :meth:`write_advance` can be used to advance the
+        buffer pointer, making the data available for future read operations.
+
+        Note: After a write pointer moving operation these buffers are no
+        longer valid and one should use this property to get new ones.
+
+        """
+        vectors = _ffi.new("jack_ringbuffer_data_t[2]")
+        _lib.jack_ringbuffer_get_write_vector(self._ptr, vectors)
+        return (
+            _ffi.buffer(vectors[0].buf,vectors[0].len),
+            _ffi.buffer(vectors[1].buf,vectors[1].len)
+        )
+
+    @property
+    def read_space(self):
+        """The number of bytes available for reading."""
+        return _lib.jack_ringbuffer_read_space(self._ptr)
+
+    @property
+    def write_space(self):
+        """The number of bytes available for writing."""
+        return _lib.jack_ringbuffer_write_space(self._ptr)
+
+    @property
+    def size(self):
+        """The number of bytes in total used by the buffer."""
+        return self._ptr.size
 
 
 class Status(object):
