@@ -187,6 +187,9 @@ void jack_set_error_function(void (*func)(const char*));
 void jack_set_info_function(void (*func)(const char*));
 void jack_free(void* ptr);
 
+/* ringbuffer.h */
+typedef ... jack_ringbuffer_t ;
+
 /* transport.h */
 
 int  jack_transport_locate(jack_client_t* client, jack_nframes_t frame);
