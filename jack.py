@@ -1662,9 +1662,12 @@ def set_error_function(callback=None):
 
     Set it to ``None`` to restore the default error callback function
     (which prints the error message plus a newline to stderr).
+    The `callback` function must have this signature::
+
+        callback(message:str) -> None
 
     """
-    _set_some_function(callback, _lib.jack_set_error_function)
+    _set_error_or_info_function(callback, _lib.jack_set_error_function)
 
 
 def set_info_function(callback=None):
@@ -1672,9 +1675,12 @@ def set_info_function(callback=None):
 
     Set it to ``None`` to restore default info callback function
     (which prints the info message plus a newline to stderr).
+    The `callback` function must have this signature::
+
+        callback(message:str) -> None
 
     """
-    _set_some_function(callback, _lib.jack_set_info_function)
+    _set_error_or_info_function(callback, _lib.jack_set_info_function)
 
 
 def client_pid(name):
@@ -1694,7 +1700,7 @@ def client_pid(name):
     return _lib.jack_get_client_pid(name.encode())
 
 
-def _set_some_function(callback, setter):
+def _set_error_or_info_function(callback, setter):
     """Helper for set_error_function() and set_info_function()."""
     if callback is None:
         callback_wrapper = _ffi.NULL
