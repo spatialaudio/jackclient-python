@@ -1317,27 +1317,27 @@ class Port(object):
     @property
     def is_input(self):
         """Can the port receive data?"""
-        return bool(self._portflags() & _lib.JackPortIsInput)
+        return self._hasflag(_lib.JackPortIsInput)
 
     @property
     def is_output(self):
         """Can data be read from this port?"""
-        return bool(self._portflags() & _lib.JackPortIsOutput)
+        return self._hasflag(_lib.JackPortIsOutput)
 
     @property
     def is_physical(self):
         """Does it correspond to some kind of physical I/O connector?"""
-        return bool(self._portflags() & _lib.JackPortIsPhysical)
+        return self._hasflag(_lib.JackPortIsPhysical)
 
     @property
     def can_monitor(self):
         """Does a call to :meth:`request_monitor` make sense?"""
-        return bool(self._portflags() & _lib.JackPortCanMonitor)
+        return self._hasflag(_lib.JackPortCanMonitor)
 
     @property
     def is_terminal(self):
         """Is the data consumed/generated?"""
-        return bool(self._portflags() & _lib.JackPortIsTerminal)
+        return self._hasflag(_lib.JackPortIsTerminal)
 
     @property
     def type(self):
@@ -1365,8 +1365,9 @@ class Port(object):
         _check(_lib.jack_port_request_monitor(self._ptr, onoff),
                "Unable to switch monitoring on/off")
 
-    def _portflags(self):
-        return _lib.jack_port_flags(self._ptr)
+    def _hasflag(self, flag):
+        """Helper method for is_*()."""
+        return bool(_lib.jack_port_flags(self._ptr) & flag)
 
 
 class OwnPort(Port):
