@@ -1484,10 +1484,8 @@ class OwnPort(Port):
         else:
             assert False
         ports._portlist.remove(self)
-        name = self.name  # store name for error message
-        err = _lib.jack_port_unregister(self._client._ptr, self._ptr)
-        self._ptr = _ffi.NULL
-        _check(err, "Error unregistering {0!r}".format(name))
+        _check(_lib.jack_port_unregister(self._client._ptr, self._ptr),
+               "Error unregistering {0!r}".format(self.name))
 
     def get_buffer(self):
         """Get buffer for audio data.
