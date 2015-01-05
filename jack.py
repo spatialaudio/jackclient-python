@@ -1464,10 +1464,25 @@ class OwnPort(Port):
             assert False
         self._client.connect(source.name, destination.name)
 
-    def disconnect(self):
-        """Disconnect all connections of this port."""
-        _check(_lib.jack_port_disconnect(self._client._ptr, self._ptr),
-               "Error disconnecting {0!r}".format(self.name))
+    def disconnect(self, other=None):
+        """Disconnect this port.
+
+        Parameters
+        ----------
+        other : str or Port
+            Port to disconnect from.
+            By default, disconnect from all connected ports.
+
+        """
+        if other is None:
+            _check(_lib.jack_port_disconnect(self._client._ptr, self._ptr),
+                   "Error disconnecting {0!r}".format(self.name))
+        else:
+            if self.is_output:
+                args = self, other
+            elif self.is_input:
+                args = other, self
+            self._client.disconnect(*args)
 
     def unregister(self):
         """Unregister port.
