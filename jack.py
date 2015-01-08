@@ -1518,8 +1518,8 @@ class OwnPort(Port):
 
         """
         blocksize = self._client.blocksize
-        return _ffi.buffer(_ffi.cast("float*", _lib.jack_port_get_buffer(
-            self._ptr, blocksize)), blocksize * _ffi.sizeof("float"))
+        return _ffi.buffer(_lib.jack_port_get_buffer(self._ptr, blocksize),
+                           blocksize * _ffi.sizeof("float"))
 
     def get_array(self):
         """Get audio buffer as NumPy array.
