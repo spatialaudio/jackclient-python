@@ -1370,6 +1370,14 @@ class Port(object):
     def __repr__(self):
         return "jack.{0.__class__.__name__}({0.name!r})".format(self)
 
+    def __eq__(self, other):
+        """Ports are equal if their underlying port pointers are."""
+        return self._ptr == other._ptr
+
+    def __ne__(self, other):
+        """This should be implemented whenever __eq__() is implemented."""
+        return not self.__eq__(other)
+
     @property
     def name(self):
         """Full name of the JACK port (read-only)."""
@@ -1502,15 +1510,6 @@ class OwnPort(Port):
     def __init__(self, port_ptr, client):
         Port.__init__(self, port_ptr)
         self._client = client
-
-    def __eq__(self, other):
-        """This is needed for list.remove() in unregister()."""
-        return (self._ptr == other._ptr and
-                self._client._ptr == other._client._ptr)
-
-    def __ne__(self, other):
-        """This should be implemented whenever __eq__() is implemented."""
-        return not self.__eq__(other)
 
     @property
     def number_of_connections(self):
