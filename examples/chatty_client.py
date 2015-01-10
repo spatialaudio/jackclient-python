@@ -104,14 +104,10 @@ def xrun(userdata):
 
 client.set_xrun_callback(xrun)
 
-
 print("activating JACK")
-client.activate()
-
-print("#" * 80)
-print("press Return to quit")
-print("#" * 80)
-input()
-
-print("closing JACK")
-client.close()
+with client:
+    print("#" * 80)
+    print("press Return to quit")
+    print("#" * 80)
+    input()
+    print("closing JACK")
