@@ -48,7 +48,7 @@ def shutdown(status, reason, userdata):
 client.set_shutdown_callback(shutdown)
 
 # create two port pairs
-for number in range(1, 3):
+for number in 1, 2:
     client.inports.register("input_{0}".format(number))
     client.outports.register("output_{0}".format(number))
 
