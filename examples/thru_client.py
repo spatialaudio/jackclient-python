@@ -9,17 +9,19 @@ If you have a microphone and loudspeakers connected, this might cause an
 acoustical feedback!
 
 """
-
 import jack
 import threading
 import sys
+import os
 import signal
 
-# TODO: 1st argument: client name
-# TODO: default client name: basename of argv[0]
-# TODO: 2nd argument: server name (default None)
+argv = iter(sys.argv)
+# By default, use script name without extension as client name:
+defaultclientname = os.path.splitext(os.path.basename(next(argv)))[0]
+clientname = next(argv, defaultclientname)
+servername = next(argv, None)
 
-client = jack.Client("Through-Client")
+client = jack.Client(clientname, servername=servername)
 
 if client.status.server_started:
     print("JACK server started")
