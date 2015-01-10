@@ -16,10 +16,9 @@ def callback(frames, userdata):
     return jack.CALL_AGAIN
 
 client.set_process_callback(callback)
-client.activate()
 
-print("#" * 80)
-print("press Return to quit")
-print("#" * 80)
-input()
-client.close()
+with client:
+    print("#" * 80)
+    print("press Return to quit")
+    print("#" * 80)
+    input()
