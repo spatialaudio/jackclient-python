@@ -771,7 +771,7 @@ class Client(object):
     def set_process_callback(self, callback, userdata=None):
         """Register process callback.
 
-        Tell the Jack server to call `callback` whenever there is work
+        Tell the JACK server to call `callback` whenever there is work
         be done, passing `userdata` as the second argument.
 
         The code in the supplied function must be suitable for real-time
@@ -1354,6 +1354,10 @@ class Port(object):
     be created.  In case of MIDI ports, instances of :class:`MidiPort`
     or :class:`OwnMidiPort` are created.
 
+    Besides being the type of non-owned JACK audio ports, this class
+    also serves as base class for all other port classes
+    (:class:`OwnPort`, :class:`MidiPort` and :class:`OwnMidiPort`).
+
     New JACK audio/MIDI ports can be created with the
     :meth:`~Client.Ports.register` method of :attr:`Client.inports`,
     :attr:`Client.outports`, :attr:`Client.midi_inports` and
@@ -1459,8 +1463,8 @@ class MidiPort(Port):
 
     """A JACK MIDI port.
 
-    This class has exactly the same attributes and methods as
-    :class:`Port`.
+    This class is derived from :class:`Port` and has exactly the same
+    attributes and methods.
 
     New JACK audio/MIDI ports can be created with the
     :meth:`~Client.Ports.register` method of :attr:`Client.inports`,
@@ -1481,9 +1485,8 @@ class OwnPort(Port):
 
     """A JACK audio port owned by a :class:`Client` object.
 
-    This class is derived from :class:`Port`.  Therefore,
-    :class:`OwnPort` objects can do everything that :class:`Port`
-    objects can, plus some more things.
+    This class is derived from :class:`Port`.  :class:`OwnPort` objects
+    can do everything that :class:`Port` objects can, plus a lot more.
 
     This class cannot be instantiated directly.  Instead, instances of
     this class are returned from :meth:`Client.get_port_by_name`,
@@ -1617,7 +1620,7 @@ class OwnPort(Port):
         zero-filled.  If there are multiple inbound connections, the
         data will be mixed appropriately.
 
-        Caching output ports is DEPRECATED in Jack 2.0, due to some new
+        Caching output ports is DEPRECATED in JACK 2.0, due to some new
         optimization (like "pipelining").  Port buffers have to be
         retrieved in each callback for proper functioning.
 
@@ -1640,12 +1643,14 @@ class OwnPort(Port):
 
 class OwnMidiPort(MidiPort, OwnPort):
 
-    """A JACK MIDI port owned by a Client object.
+    """A JACK MIDI port owned by a :class:`Client` object.
 
-    This class is very similar to :class:`OwnPort`.
-    It has the same attributes and methods, but :meth:`get_buffer` and
-    :meth:`get_array` are disabled.  Instead, it has methods for sending
-    and receiving MIDI events (from within the process callback).
+    This class is derived from :class:`OwnPort` and :class:`MidiPort`,
+    which are themselves derived from :class:`Port`.  It has the same
+    attributes and methods as :class:`OwnPort`, but :meth:`get_buffer`
+    and :meth:`get_array` are disabled.  Instead, it has methods for
+    sending and receiving MIDI events (to be used from within the
+    process callback -- see :meth:`Client.set_process_callback`).
 
     New JACK audio/MIDI ports can be created with the
     :meth:`~Client.Ports.register` method of :attr:`Client.inports`,
@@ -1692,7 +1697,7 @@ class OwnMidiPort(MidiPort, OwnPort):
     def incoming_midi_events(self):
         """Return generator for incoming MIDI events.
 
-        Jack MIDI is normalised, the MIDI events yielded by this
+        JACK MIDI is normalised, the MIDI events yielded by this
         generator are guaranteed to be complete MIDI events (the status
         byte will always be present, and no realtime events will be
         interspersed with the events).
