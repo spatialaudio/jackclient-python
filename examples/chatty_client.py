@@ -7,6 +7,7 @@ callback, which would be just too much noise) and prints some
 information whenever they are called.
 
 """
+from __future__ import print_function  # only needed for Python 2.x
 import jack
 
 
