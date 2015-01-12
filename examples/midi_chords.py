@@ -9,8 +9,9 @@ Two additional events are created for each NoteOn and NoteOff event.
 import jack
 import struct
 
-NOTEON = 0x90
-NOTEOFF = 0x80
+# First 4 bits of status byte:
+NOTEON = 0x9
+NOTEOFF = 0x8
 
 INTERVALS = 3, 7  # minor triad
 
@@ -26,10 +27,10 @@ def callback(frames, userdata):
         # Note: potential errors are ignored! If len(outdata) == 0 -> error
         outdata[:] = indata
         if len(indata) == 3:
-            cmd, pitch, vel = struct.unpack('3B', indata)
-            if cmd in (NOTEON, NOTEOFF):
+            status, pitch, vel = struct.unpack('3B', indata)
+            if status >> 4 in (NOTEON, NOTEOFF):
                 for i in INTERVALS:
-                    outport.write_midi_event(offset, (cmd, pitch + i, vel))
+                    outport.write_midi_event(offset, (status, pitch + i, vel))
                     # An exception will be raised if MIDI buffer is full
     return jack.CALL_AGAIN
 
