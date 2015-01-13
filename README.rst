@@ -31,8 +31,8 @@ CFFI:
 JACK library:
    The JACK_ library must be installed on your system (and CFFI must be able
    to find it).  Again, you should use your package manager to install it.
-   Make sure you install both the JACK daemon (called ``jackd``) and the
-   development package (``libjack-dev`` or similar).
+   Make sure you install the JACK daemon (called ``jackd``). This will also
+   install the JACK library package.
    If you prefer, you can of course also download the sources and compile
    everything locally.
 
