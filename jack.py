@@ -26,6 +26,7 @@ http://jackclient-python.rtfd.org/
 __version__ = "0.1.0"
 
 from cffi import FFI as _FFI
+import types
 
 _ffi = _FFI()
 _ffi.cdef("""
@@ -134,7 +135,7 @@ int jack_set_freewheel(jack_client_t* client, int onoff);
 int jack_set_buffer_size(jack_client_t* client, jack_nframes_t nframes);
 jack_nframes_t jack_get_sample_rate(jack_client_t*);
 jack_nframes_t jack_get_buffer_size(jack_client_t*);
-/* deprecated: jack_engine_takeover_timebase() */
+/* deprecated: jack_engine_takeover_timebase */
 float jack_cpu_load(jack_client_t* client);
 jack_port_t* jack_port_register(jack_client_t* client, const char* port_name, const char* port_type, unsigned long flags, unsigned long buffer_size);
 int jack_port_unregister(jack_client_t* client, jack_port_t* port);
@@ -144,7 +145,7 @@ const char* jack_port_name(const jack_port_t* port);
 const char* jack_port_short_name(const jack_port_t* port);
 int jack_port_flags(const jack_port_t* port);
 const char* jack_port_type(const jack_port_t* port);
-jack_port_type_id_t jack_port_type_id(const jack_port_t* port);
+/* not implemented: jack_port_type_id */
 int jack_port_is_mine(const jack_client_t* client, const jack_port_t* port);
 int jack_port_connected(const jack_port_t* port);
 int jack_port_connected_to(const jack_port_t* port, const char* port_name);
@@ -187,6 +188,25 @@ void jack_set_error_function(void (*func)(const char*));
 void jack_set_info_function(void (*func)(const char*));
 void jack_free(void* ptr);
 
+/* ringbuffer.h */
+typedef ... jack_ringbuffer_data_t ;
+typedef ... jack_ringbuffer_t ;
+
+jack_ringbuffer_t *jack_ringbuffer_create(size_t sz);
+void jack_ringbuffer_free(jack_ringbuffer_t *rb);
+/* not implemented: jack_ringbuffer_get_read_vector, really fast uses only */
+/* not implemented: jack_ringbuffer_get_write_vector, really fast uses only */
+size_t jack_ringbuffer_read(jack_ringbuffer_t *rb, char *dest, size_t cnt);
+size_t jack_ringbuffer_peek(jack_ringbuffer_t *rb, char *dest, size_t cnt);
+void jack_ringbuffer_read_advance(jack_ringbuffer_t *rb, size_t cnt);
+size_t jack_ringbuffer_read_space(const jack_ringbuffer_t *rb);
+int jack_ringbuffer_mlock(jack_ringbuffer_t *rb);
+void jack_ringbuffer_reset(jack_ringbuffer_t *rb);
+/* not implemented: jack_ringbuffer_reset_size */
+size_t jack_ringbuffer_write(jack_ringbuffer_t *rb, const char *src, size_t cnt);
+/* not implemented: jack_ringbuffer_write_advance, really fast uses only */
+size_t jack_ringbuffer_write_space(const jack_ringbuffer_t *rb);
+
 /* transport.h */
 
 int  jack_transport_locate(jack_client_t* client, jack_nframes_t frame);
@@ -200,12 +220,33 @@ void jack_transport_stop(jack_client_t* client);
 
 float jack_get_xrun_delayed_usecs(jack_client_t* client);
 
+/* midiport.h */
+
+typedef unsigned char jack_midi_data_t;
+typedef struct _jack_midi_event
+{
+    jack_nframes_t    time;   /* Sample index at which event is valid */
+    size_t            size;   /* Number of bytes of data in buffer */
+    jack_midi_data_t* buffer; /* Raw MIDI data */
+} jack_midi_event_t;
+uint32_t jack_midi_get_event_count(void* port_buffer);
+int jack_midi_event_get(jack_midi_event_t* event, void* port_buffer, uint32_t event_index);
+void jack_midi_clear_buffer(void* port_buffer);
+/* not implemented: jack_midi_reset_buffer */
+size_t jack_midi_max_event_size(void* port_buffer);
+jack_midi_data_t* jack_midi_event_reserve(void* port_buffer, jack_nframes_t time, size_t data_size);
+int jack_midi_event_write(void* port_buffer, jack_nframes_t time, const jack_midi_data_t* data, size_t data_size);
+uint32_t jack_midi_get_lost_event_count(void* port_buffer);
+
 /* errno.h */
 
-#define	EEXIST 17
+#define EEXIST 17
 """)
 
 _lib = _ffi.dlopen("jack")
+
+_AUDIO = b"32 bit float mono audio"
+_MIDI = b"8 bit raw midi"
 
 CALL_AGAIN = 0
 """Possible return value for process callback."""
@@ -226,17 +267,19 @@ class Client(object):
         """A list of input/output ports.
 
         This class is not meant to be instantiated directly.  It is only
-        used as :attr:`Client.inports` and :attr:`Client.outports`.
+        used as :attr:`Client.inports`, :attr:`Client.outports`,
+        :attr:`Client.midi_inports` and :attr:`Client.midi_outports`.
 
         The ports can be accessed by indexing or by iteration.
 
         New ports can be added with :meth:`register`, existing ports can
-        be removed by calling their :meth:`OwnPort.unregister` method.
+        be removed by calling their :meth:`~OwnPort.unregister` method.
 
         """
 
-        def __init__(self, client, flag):
+        def __init__(self, client, porttype, flag):
             self._client = client
+            self._type = porttype
             self._flag = flag
             self._portlist = []
 
@@ -257,8 +300,10 @@ class Client(object):
         def register(self, shortname, is_terminal=False, is_physical=False):
             """Create a new input/output port.
 
-            The new :class:`OwnPort` object is automatically added to
-            :attr:`Client.inports`/:attr:`Client.outports`.
+            The new :class:`OwnPort` or :class:`OwnMidiPort` object is
+            automatically added to :attr:`Client.inports`,
+            :attr:`Client.outports`, :attr:`Client.midi_inports` or
+            :attr:`Client.midi_outports`.
 
             Parameters
             ----------
@@ -288,12 +333,12 @@ class Client(object):
 
             Returns
             -------
-            OwnPort
-                A new :class:`OwnPort` instance.
+            Port
+                A new :class:`OwnPort` or :class:`OwnMidiPort` instance.
 
             """
-            port = self._client._register_port(shortname, is_terminal,
-                                               is_physical, self._flag)
+            port = self._client._register_port(
+                shortname, self._type, is_terminal, is_physical, self._flag)
             self._portlist.append(port)
             return port
 
@@ -359,8 +404,10 @@ class Client(object):
         if not self._ptr:
             raise JackError(str(self.status))
 
-        self._inports = self.Ports(self, _lib.JackPortIsInput)
-        self._outports = self.Ports(self, _lib.JackPortIsOutput)
+        self._inports = self.Ports(self, _AUDIO, _lib.JackPortIsInput)
+        self._outports = self.Ports(self, _AUDIO, _lib.JackPortIsOutput)
+        self._midi_inports = self.Ports(self, _MIDI, _lib.JackPortIsInput)
+        self._midi_outports = self.Ports(self, _MIDI, _lib.JackPortIsOutput)
         self._keepalive = []
 
     # Avoid confusion if something goes wrong before opening the client:
@@ -472,13 +519,14 @@ class Client(object):
 
     @property
     def inports(self):
-        """A list of input :class:`Ports`.
+        """A list of audio input :class:`Ports`.
 
         New ports can be created and added to this list with the
-        :meth:`~Ports.register` method.  When :meth:`OwnPort.unregister`
-        is called on one of the items in this list, this port is removed
-        from the list.  The :meth:`~Ports.clear` method can be used to
-        unregister all input ports at once.
+        :meth:`~Ports.register` method.
+        When :meth:`~OwnPort.unregister` is called on one of the items
+        in this list, this port is removed from the list.
+        The :meth:`~Ports.clear` method can be used to unregister all
+        audio input ports at once.
 
         See Also
         --------
@@ -489,13 +537,14 @@ class Client(object):
 
     @property
     def outports(self):
-        """A list of output :class:`Ports`.
+        """A list of audio output :class:`Ports`.
 
         New ports can be created and added to this list with the
-        :meth:`~Ports.register` method.  When :meth:`OwnPort.unregister`
-        is called on one of the items in this list, this port is removed
-        from the list.  The :meth:`~Ports.clear` method can be used to
-        unregister all output ports at once.
+        :meth:`~Ports.register` method.
+        When :meth:`~OwnPort.unregister` is called on one of the items
+        in this list, this port is removed from the list.
+        The :meth:`~Ports.clear` method can be used to unregister all
+        audio output ports at once.
 
         See Also
         --------
@@ -504,13 +553,50 @@ class Client(object):
         """
         return self._outports
 
+    @property
+    def midi_inports(self):
+        """A list of MIDI input :class:`Ports`.
+
+        New MIDI ports can be created and added to this list with the
+        :meth:`~Ports.register` method.
+        When :meth:`~OwnPort.unregister` is called on one of the
+        items in this list, this port is removed from the list.
+        The :meth:`~Ports.clear` method can be used to unregister all
+        MIDI input ports at once.
+
+        See Also
+        --------
+        Ports, OwnMidiPort
+
+        """
+        return self._midi_inports
+
+    @property
+    def midi_outports(self):
+        """A list of MIDI output :class:`Ports`.
+
+        New MIDI ports can be created and added to this list with the
+        :meth:`~Ports.register` method.
+        When :meth:`~OwnPort.unregister` is called on one of the
+        items in this list, this port is removed from the list.
+        The :meth:`~Ports.clear` method can be used to unregister all
+        MIDI output ports at once.
+
+        See Also
+        --------
+        Ports, OwnMidiPort
+
+        """
+        return self._midi_outports
+
     def owns(self, port):
         """Check if a given port belongs to `self`.
 
         Parameters
         ----------
         port : str or Port
-            Full port name or :class:`Port`/:class:`OwnPort` object.
+            Full port name or :class:`Port`, :class:`MidiPort`,
+            :class:`OwnPort` or :class:`OwnMidiPort` object.
 
         """
         port = self._get_port_ptr(port)
@@ -701,11 +787,12 @@ class Client(object):
                             userdata)
 
         _lib.jack_on_info_shutdown(self._ptr, callback_wrapper, _ffi.NULL)
+        return callback_wrapper
 
     def set_process_callback(self, callback, userdata=None):
         """Register process callback.
 
-        Tell the Jack server to call `callback` whenever there is work
+        Tell the JACK server to call `callback` whenever there is work
         be done, passing `userdata` as the second argument.
 
         The code in the supplied function must be suitable for real-time
@@ -739,13 +826,20 @@ class Client(object):
             is called.
 
         """
-        @self._callback("JackProcessCallback", error=STOP_CALLING)
-        def callback_wrapper(frames, _):
-            return callback(frames, userdata)
-
-        _check(_lib.jack_set_process_callback(
-            self._ptr, callback_wrapper, _ffi.NULL),
-            "Error setting process callback")
+        if type(callback) == types.FunctionType:
+            @self._callback("JackProcessCallback", error=STOP_CALLING)
+            def callback_wrapper(frames, _):
+                return callback(frames, userdata)
+            _check(_lib.jack_set_process_callback(
+                self._ptr, callback_wrapper, _ffi.NULL),
+                "Error setting process callback")
+            return callback_wrapper
+        else:
+            if userdata is None:
+                userdata = _ffi.NULL
+            _check(_lib.jack_set_process_callback(
+                self._ptr, callback, _ffi.cast("void *", userdata)),
+                "Error setting process callback")
 
     def set_freewheel_callback(self, callback, userdata=None):
         """Register freewheel callback.
@@ -786,6 +880,7 @@ class Client(object):
         _check(_lib.jack_set_freewheel_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting freewheel callback")
+        return callback_wrapper
 
     def set_blocksize_callback(self, callback, userdata=None):
         """Register blocksize callback.
@@ -831,6 +926,7 @@ class Client(object):
         _check(_lib.jack_set_buffer_size_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting blocksize callback")
+        return callback_wrapper
 
     def set_samplerate_callback(self, callback, userdata=None):
         """Register samplerate callback.
@@ -869,6 +965,7 @@ class Client(object):
         _check(_lib.jack_set_sample_rate_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting samplerate callback")
+        return callback_wrapper
 
     def set_client_registration_callback(self, callback, userdata=None):
         """Register client registration callback.
@@ -907,6 +1004,7 @@ class Client(object):
         _check(_lib.jack_set_client_registration_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting client registration callback")
+        return callback_wrapper
 
     def set_port_registration_callback(self, callback, userdata=None):
         """Register port registration callback.
@@ -930,10 +1028,10 @@ class Client(object):
 
                 callback(port:Port, register:bool, userdata) -> None
 
-            The first argument is a :class:`Port` object (or an
-            :class:`OwnPort`), the second argument is ``True`` if the
-            port is being registered, ``False`` if the port is being
-            unregistered.
+            The first argument is a :class:`Port`, :class:`MidiPort`,
+            :class:`OwnPort` or :class:`OwnMidiPort` object, the second
+            argument is ``True`` if the port is being registered,
+            ``False`` if the port is being unregistered.
         userdata : anything
             This will be passed as third argument whenever `callback` is
             called.
@@ -941,13 +1039,13 @@ class Client(object):
         """
         @self._callback("JackPortRegistrationCallback")
         def callback_wrapper(port, register, _):
-            port = _lib.jack_port_by_id(self._ptr, port)
-            port = OwnPort(port, self) if self.owns(port) else Port(port)
+            port = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, port))
             return callback(port, bool(register), userdata)
 
         _check(_lib.jack_set_port_registration_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting port registration callback")
+        return callback_wrapper
 
     def set_port_connect_callback(self, callback, userdata=None):
         """Register port connect callback.
@@ -970,11 +1068,11 @@ class Client(object):
 
                 callback(a:Port, b:Port, connect:bool, userdata) -> None
 
-            The first and second arguments contain :class:`Port` (or
-            :class:`OwnPort`) objects of the ports which are connected
-            or disconnected.  The third argument is ``True`` if the
-            ports were connected and ``False`` if the ports were
-            disconnected.
+            The first and second arguments contain :class:`Port`,
+            :class:`MidiPort`, :class:`OwnPort` or :class:`OwnMidiPort`
+            objects of the ports which are connected or disconnected.
+            The third argument is ``True`` if the ports were connected
+            and ``False`` if the ports were disconnected.
         userdata : anything
             This will be passed as fourth argument whenever `callback`
             is called.
@@ -982,15 +1080,14 @@ class Client(object):
         """
         @self._callback("JackPortConnectCallback")
         def callback_wrapper(a, b, connect, _):
-            a = _lib.jack_port_by_id(self._ptr, a)
-            a = OwnPort(a, self) if self.owns(a) else Port(a)
-            b = _lib.jack_port_by_id(self._ptr, b)
-            b = OwnPort(b, self) if self.owns(b) else Port(b)
+            a = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, a))
+            b = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, b))
             return callback(a, b, bool(connect), userdata)
 
         _check(_lib.jack_set_port_connect_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting port connect callback")
+        return callback_wrapper
 
     def set_port_rename_callback(self, callback, userdata=None):
         """Register port rename callback.
@@ -1014,8 +1111,9 @@ class Client(object):
                 callback(port:Port, old:str, new:str, userdata) -> int
 
             The first argument is the port that has been renamed (a
-            :class:`Port` or :class:`OwnPort` object); the second and
-            third argument is the old and new name, respectively.
+            :class:`Port`, :class:`MidiPort`, :class:`OwnPort` or
+            :class:`OwnMidiPort` object); the second and third argument
+            is the old and new name, respectively.
             The `callback` must return zero on success and non-zero on
             error.  You can use :data:`SUCCESS` and :data:`FAILURE`,
             respectively.
@@ -1026,14 +1124,14 @@ class Client(object):
         """
         @self._callback("JackPortRenameCallback", error=FAILURE)
         def callback_wrapper(port, old_name, new_name, _):
-            port = _lib.jack_port_by_id(self._ptr, port)
-            port = OwnPort(port, self) if self.owns(port) else Port(port)
+            port = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, port))
             return callback(port, _ffi.string(old_name).decode(),
                             _ffi.string(new_name).decode(), userdata)
 
         _check(_lib.jack_set_port_rename_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting port rename callback")
+        return callback_wrapper
 
     def set_graph_order_callback(self, callback, userdata=None):
         """Register graph order callback.
@@ -1072,6 +1170,7 @@ class Client(object):
         _check(_lib.jack_set_graph_order_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting graph order callback")
+        return callback_wrapper
 
     def set_xrun_callback(self, callback, userdata=None):
         """Register xrun callback.
@@ -1113,6 +1212,7 @@ class Client(object):
         _check(_lib.jack_set_xrun_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting xrun callback")
+        return callback_wrapper
 
     def get_uuid_for_client_name(self, name):
         """Get the session ID for a client name.
@@ -1143,22 +1243,21 @@ class Client(object):
     def get_port_by_name(self, name):
         """Get port by name.
 
-        Given a full port name, this returns a :class:`Port` or an
-        :class:`OwnPort` object.
+        Given a full port name, this returns a :class:`Port`,
+        :class:`MidiPort`, :class:`OwnPort` or :class:`OwnMidiPort`
+        object.
 
         """
         port_ptr = _lib.jack_port_by_name(self._ptr, name.encode())
         if not port_ptr:
             raise JackError("Port {0!r} not available".format(name))
-        if self.owns(port_ptr):
-            return OwnPort(port_ptr, self)
-        return Port(port_ptr)
+        return self._wrap_port_ptr(port_ptr)
 
     def get_all_connections(self, port):
         """Return a list of ports which the given port is connected to.
 
-        This differs from :attr:`OwnPort.connections` in two important
-        respects:
+        This differs from :attr:`OwnPort.connections` (also available on
+        :class:`OwnMidiPort`) in two important respects:
 
         1) You may not call this function from code that is executed in
            response to a JACK event. For example, you cannot use it in a
@@ -1173,7 +1272,7 @@ class Client(object):
                         _lib.jack_free)
         return self._port_list_from_pointers(names)
 
-    def get_ports(self, name_pattern="", type_pattern="",
+    def get_ports(self, name_pattern="", is_audio=False, is_midi=False,
                   is_input=False, is_output=False, is_physical=False,
                   can_monitor=False, is_terminal=False):
         """Return a list of selected ports.
@@ -1183,19 +1282,25 @@ class Client(object):
         name_pattern : str
             A regular expression used to select ports by name.  If
             empty, no selection based on name will be carried out.
-        type_pattern : str
-            A regular expression used to select ports by type.  If
-            empty, no selection based on type will be carried out.
+        is_audio, is_midi : bool
+            Select audio/MIDI ports.  If neither of them is ``True``,
+            both types of ports are selected.
         is_input, is_output, is_physical, can_monitor, is_terminal : bool
             Select ports by their flags.  If none of them are ``True``,
             no selection based on flags will be carried out.
 
         Returns
         -------
-        list of Port/OwnPort
+        list of Port/MidiPort/OwnPort/OwnMidiPort
             All ports that satisfy the given conditions.
 
         """
+        if is_audio and not is_midi:
+            type_pattern = _AUDIO
+        elif is_midi and not is_audio:
+            type_pattern = _MIDI
+        else:
+            type_pattern = b""
         flags = 0x0
         if is_input:
             flags |= _lib.JackPortIsInput
@@ -1208,7 +1313,7 @@ class Client(object):
         if is_terminal:
             flags |= _lib.JackPortIsTerminal
         names = _ffi.gc(_lib.jack_get_ports(
-            self._ptr, name_pattern.encode(), type_pattern.encode(), flags),
+            self._ptr, name_pattern.encode(), type_pattern, flags),
             _lib.jack_free)
         return self._port_list_from_pointers(names)
 
@@ -1220,19 +1325,18 @@ class Client(object):
             return function_ptr
         return callback_decorator
 
-    def _register_port(self, shortname, is_terminal, is_physical, flags):
+    def _register_port(self, name, porttype, is_terminal, is_physical, flags):
         """Create a new port."""
         if is_terminal:
             flags |= _lib.JackPortIsTerminal
         if is_physical:
             flags |= _lib.JackPortIsPhysical
-        port_ptr = _lib.jack_port_register(self._ptr, shortname.encode(),
-                                           "32 bit float mono audio".encode(),
+        port_ptr = _lib.jack_port_register(self._ptr, name.encode(), porttype,
                                            flags, 0)
         if not port_ptr:
             raise JackError(
-                "{0!r}: port registration failed".format(shortname))
-        return OwnPort(port_ptr, self)
+                "{0!r}: port registration failed".format(name))
+        return self._wrap_port_ptr(port_ptr)
 
     def _port_list_from_pointers(self, names):
         """Get list of Port objects from char**."""
@@ -1257,10 +1361,21 @@ class Client(object):
             raise TypeError("{0!r} is not a JACK port".format(port))
         return port
 
+    def _wrap_port_ptr(self, ptr):
+        """Create appropriate port object for a given port pointer."""
+        porttype = _ffi.string(_lib.jack_port_type(ptr))
+        if porttype == _AUDIO:
+            port = OwnPort(ptr, self) if self.owns(ptr) else Port(ptr)
+        elif porttype == _MIDI:
+            port = OwnMidiPort(ptr, self) if self.owns(ptr) else MidiPort(ptr)
+        else:
+            assert False
+        return port
+
 
 class Port(object):
 
-    """A JACK port.
+    """A JACK audio port.
 
     This class cannot be instantiated directly.  Instead, instances of
     this class are returned from :meth:`Client.get_port_by_name`,
@@ -1273,7 +1388,17 @@ class Port(object):
 
     Note, however, that if the used :class:`Client` owns the respective
     port, instances of :class:`OwnPort` (instead of :class:`Port`) will
-    be created.
+    be created.  In case of MIDI ports, instances of :class:`MidiPort`
+    or :class:`OwnMidiPort` are created.
+
+    Besides being the type of non-owned JACK audio ports, this class
+    also serves as base class for all other port classes
+    (:class:`OwnPort`, :class:`MidiPort` and :class:`OwnMidiPort`).
+
+    New JACK audio/MIDI ports can be created with the
+    :meth:`~Client.Ports.register` method of :attr:`Client.inports`,
+    :attr:`Client.outports`, :attr:`Client.midi_inports` and
+    :attr:`Client.midi_outports`.
 
     """
 
@@ -1285,6 +1410,14 @@ class Port(object):
 
     def __repr__(self):
         return "jack.{0.__class__.__name__}({0.name!r})".format(self)
+
+    def __eq__(self, other):
+        """Ports are equal if their underlying port pointers are."""
+        return self._ptr == other._ptr
+
+    def __ne__(self, other):
+        """This should be implemented whenever __eq__() is implemented."""
+        return not self.__eq__(other)
 
     @property
     def name(self):
@@ -1314,6 +1447,9 @@ class Port(object):
         """The UUID of the JACK port."""
         return _lib.jack_port_uuid(self._ptr)
 
+    is_audio = property(lambda self: True, doc="This is always ``True``.")
+    is_midi = property(lambda self: False, doc="This is always ``False``.")
+
     @property
     def is_input(self):
         """Can the port receive data?"""
@@ -1339,16 +1475,6 @@ class Port(object):
         """Is the data consumed/generated?"""
         return self._hasflag(_lib.JackPortIsTerminal)
 
-    @property
-    def type(self):
-        """Port type."""
-        return _ffi.string(_lib.jack_port_type(self._ptr)).decode()
-
-    @property
-    def type_id(self):
-        """Port type ID."""
-        return _lib.jack_port_type_id(self._ptr)
-
     def request_monitor(self, onoff):
         """Set input monitoring.
 
@@ -1370,13 +1496,34 @@ class Port(object):
         return bool(_lib.jack_port_flags(self._ptr) & flag)
 
 
+class MidiPort(Port):
+
+    """A JACK MIDI port.
+
+    This class is derived from :class:`Port` and has exactly the same
+    attributes and methods.
+
+    New JACK audio/MIDI ports can be created with the
+    :meth:`~Client.Ports.register` method of :attr:`Client.inports`,
+    :attr:`Client.outports`, :attr:`Client.midi_inports` and
+    :attr:`Client.midi_outports`.
+
+    See Also
+    --------
+    Port, OwnMidiPort
+
+    """
+
+    is_audio = property(lambda self: False, doc="This is always ``False``.")
+    is_midi = property(lambda self: True, doc="This is always ``True``.")
+
+
 class OwnPort(Port):
 
-    """A JACK port owned by a Client object.
+    """A JACK audio port owned by a :class:`Client` object.
 
-    This class is derived from :class:`Port`.  Therfore,
-    :class:`OwnPort` objects can do everything that :class:`Port`
-    objects can, plus some more things.
+    This class is derived from :class:`Port`.  :class:`OwnPort` objects
+    can do everything that :class:`Port` objects can, plus a lot more.
 
     This class cannot be instantiated directly.  Instead, instances of
     this class are returned from :meth:`Client.get_port_by_name`,
@@ -1390,25 +1537,19 @@ class OwnPort(Port):
     Note, however, that if the used :class:`Client` doesn't own the
     respective port, instances of :class:`Port` (instead of
     :class:`OwnPort`) will be created.
+    In case of MIDI ports, instances of :class:`MidiPort` or
+    :class:`OwnMidiPort` are created.
 
-    New JACK ports can be created with the
-    :meth:`~Client.Ports.register` method of :attr:`Client.inports` and
-    :attr:`Client.outports`.
+    New JACK audio/MIDI ports can be created with the
+    :meth:`~Client.Ports.register` method of :attr:`Client.inports`,
+    :attr:`Client.outports`, :attr:`Client.midi_inports` and
+    :attr:`Client.midi_outports`.
 
     """
 
     def __init__(self, port_ptr, client):
         Port.__init__(self, port_ptr)
         self._client = client
-
-    def __eq__(self, other):
-        """This is needed for list.remove() in unregister()."""
-        return (self._ptr == other._ptr and
-                self._client._ptr == other._client._ptr)
-
-    def __ne__(self, other):
-        """This should be implemented whenever __eq__() is implemented."""
-        return not self.__eq__(other)
 
     @property
     def number_of_connections(self):
@@ -1428,7 +1569,7 @@ class OwnPort(Port):
         Parameters
         ----------
         port : str or Port
-            Full port name or :class:`Port`/:class:`OwnPort` object.
+            Full port name or port object.
 
         """
         if isinstance(port, Port):
@@ -1441,7 +1582,7 @@ class OwnPort(Port):
         Parameters
         ----------
         port : str or Port
-            Full port name or :class:`Port`/:class:`OwnPort` object.
+            Full port name or port object.
 
         See Also
         --------
@@ -1489,15 +1630,19 @@ class OwnPort(Port):
 
         Remove the port from the client, disconnecting any existing
         connections.  This also removes the port from
-        :attr:`Client.inports`/:attr:`Client.outports`.
+        :attr:`Client.inports`, :attr:`Client.outports`,
+        :attr:`Client.midi_inports` or :attr:`Client.midi_outports`.
 
         """
+        if self.is_audio:
+            listname = ""
+        elif self.is_midi:
+            listname = "midi_"
         if self.is_input:
-            ports = self._client.inports
+            listname += "inports"
         elif self.is_output:
-            ports = self._client.outports
-        else:
-            assert False
+            listname += "outports"
+        ports = getattr(self._client, listname)
         ports._portlist.remove(self)
         _check(_lib.jack_port_unregister(self._client._ptr, self._ptr),
                "Error unregistering {0!r}".format(self.name))
@@ -1512,7 +1657,7 @@ class OwnPort(Port):
         zero-filled.  If there are multiple inbound connections, the
         data will be mixed appropriately.
 
-        Caching output ports is DEPRECATED in Jack 2.0, due to some new
+        Caching output ports is DEPRECATED in JACK 2.0, due to some new
         optimization (like "pipelining").  Port buffers have to be
         retrieved in each callback for proper functioning.
 
@@ -1531,6 +1676,226 @@ class OwnPort(Port):
         """
         import numpy as np
         return np.frombuffer(self.get_buffer(), dtype=np.float32)
+
+
+class OwnMidiPort(MidiPort, OwnPort):
+
+    """A JACK MIDI port owned by a :class:`Client` object.
+
+    This class is derived from :class:`OwnPort` and :class:`MidiPort`,
+    which are themselves derived from :class:`Port`.  It has the same
+    attributes and methods as :class:`OwnPort`, but :meth:`get_buffer`
+    and :meth:`get_array` are disabled.  Instead, it has methods for
+    sending and receiving MIDI events (to be used from within the
+    process callback -- see :meth:`Client.set_process_callback`).
+
+    New JACK audio/MIDI ports can be created with the
+    :meth:`~Client.Ports.register` method of :attr:`Client.inports`,
+    :attr:`Client.outports`, :attr:`Client.midi_inports` and
+    :attr:`Client.midi_outports`.
+
+    """
+
+    def __init__(self, *args, **kwargs):
+        OwnPort.__init__(self, *args, **kwargs)
+        self._event = _ffi.new("jack_midi_event_t*")
+
+    def get_buffer(self):
+        """Not available for MIDI ports."""
+        raise NotImplementedError("get_buffer() not available on MIDI ports")
+
+    def get_array(self):
+        """Not available for MIDI ports."""
+        raise NotImplementedError("get_array() not available on MIDI ports")
+
+    @property
+    def max_event_size(self):
+        """Get the size of the largest event that can be stored by the port.
+
+        This returns the current space available, taking into
+        account events already stored in the port.
+
+        """
+        return _lib.jack_midi_max_event_size(
+            _lib.jack_port_get_buffer(self._ptr, self._client.blocksize))
+
+    @property
+    def lost_midi_events(self):
+        """Get the number of events that could not be written to the port.
+
+        This being a non-zero value implies that the port is full.
+        Currently the only way this can happen is if events are lost on
+        port mixdown.
+
+        """
+        return _lib.jack_midi_get_lost_event_count(
+            _lib.jack_port_get_buffer(self._ptr, self._client.blocksize))
+
+    def incoming_midi_events(self):
+        """Return generator for incoming MIDI events.
+
+        JACK MIDI is normalised, the MIDI events yielded by this
+        generator are guaranteed to be complete MIDI events (the status
+        byte will always be present, and no realtime events will be
+        interspersed with the events).
+
+        Yields
+        ------
+        time : int
+            Time (in samples) relative to the beginning of the current
+            audio block.
+        event : buffer
+            The actual MIDI event data.
+
+        """
+        event = self._event
+        buf = _lib.jack_port_get_buffer(self._ptr, self._client.blocksize)
+        for i in range(_lib.jack_midi_get_event_count(buf)):
+            err = _lib.jack_midi_event_get(event, buf, i)
+            # TODO: proper error handling if this ever happens:
+            assert not err, err
+            yield event.time, _ffi.buffer(event.buffer, event.size)
+
+    def clear_buffer(self):
+        """Clear an event buffer.
+
+        This should be called at the beginning of each process cycle
+        before calling :meth:`reserve_midi_event` or
+        :meth:`write_midi_event`.
+        This function may not be called on an input port.
+
+        """
+        _lib.jack_midi_clear_buffer(
+            _lib.jack_port_get_buffer(self._ptr, self._client.blocksize))
+
+    def write_midi_event(self, time, event):
+        """Create an outgoing MIDI event.
+
+        Clients must write normalised MIDI data to the port - no running
+        status and no (one-byte) realtime messages interspersed with
+        other messages (realtime messages are fine when they occur on
+        their own, like other messages).
+
+        Events must be written in order, sorted by their sample offsets.
+        JACK will not sort the events for you, and will refuse to store
+        out-of-order events.
+
+        Parameters
+        ----------
+        time : int
+            Time (in samples) relative to the beginning of the current
+            audio block.
+        event : bytes or sequence of int
+            The actual MIDI event data.
+
+            .. note:: This expects a different data type than
+               returned from :meth:`incoming_midi_events`.
+               Use ``bytes(event)`` to convert.
+
+        Raises
+        ------
+        JackError
+            If MIDI event couldn't be written.
+
+        """
+        _check(_lib.jack_midi_event_write(
+            _lib.jack_port_get_buffer(self._ptr, self._client.blocksize),
+            time, event, len(event)), "Error writing MIDI event")
+
+    def reserve_midi_event(self, time, size):
+        """Get a buffer where an outgoing MIDI event can be written to.
+
+        Clients must write normalised MIDI data to the port - no running
+        status and no (one-byte) realtime messages interspersed with
+        other messages (realtime messages are fine when they occur on
+        their own, like other messages).
+
+        Events must be written in order, sorted by their sample offsets.
+        JACK will not sort the events for you, and will refuse to store
+        out-of-order events.
+
+        Parameters
+        ----------
+        time : int
+            Time (in samples) relative to the beginning of the current
+            audio block.
+        size : int
+            Number of bytes to reserve.
+
+        Returns
+        -------
+        buffer
+            A buffer object where MIDI data bytes can be written to.
+            If no space could be reserved, an empty buffer is returned.
+
+        """
+        buf = _lib.jack_midi_event_reserve(
+            _lib.jack_port_get_buffer(self._ptr, self._client.blocksize),
+            time, size)
+        return _ffi.buffer(buf, size if buf else 0)
+
+
+def _maybe_bytes(data):
+    if type(data) is bytes:
+        data_ptr = _ffi.new("char[]", len(data))
+        data_ptr[0:len(data)] = data
+        return data_ptr
+    return data
+
+def _returns_bytes(fun):
+    def wrapper(self, cnt):
+        ret_cnt, data = fun(self, cnt)
+        return bytes(_ffi.buffer(data, min(cnt, ret_cnt)))
+    return wrapper
+
+class RingBuffer(object):
+    def __init__(self, size=256):
+        ptr = _lib.jack_ringbuffer_create(size)
+        if not ptr:
+            raise JackError(
+                "Could not create ringbuffer of size {0}".format(size))
+        self._ptr = _ffi.gc(ptr, _lib.jack_ringbuffer_free)
+        self._size = size
+
+    def _read(self, cnt):
+        data = _ffi.new("char[]", cnt)
+        ret_cnt = _lib.jack_ringbuffer_read(self._ptr, data, _ffi.sizeof(data))
+        return ret_cnt, data
+    read = _returns_bytes(_read)
+
+    def _peek(self, cnt):
+        data = _ffi.new("char[]", cnt)
+        ret_cnt = _lib.jack_ringbuffer_peek(self._ptr, data, _ffi.sizeof(data))
+        return ret_cnt, data
+    peek = _returns_bytes(_peek)
+
+    def write(self, data):
+        data = _maybe_bytes(data)
+        return _lib.jack_ringbuffer_write(self._ptr, data, _ffi.sizeof(data))
+
+    def read_advance(self, cnt):
+        _lib.jack_ringbuffer_read_advance(self._ptr, cnt)
+
+    def mlock(self):
+        return _lib.jack_ringbuffer_mlock(self._ptr)
+
+    def reset(self):
+        _lib.jack_ringbuffer_reset(self._ptr)
+
+    @property
+    def read_space(self):
+        return _lib.jack_ringbuffer_read_space(self._ptr)
+
+    @property
+    def write_space(self):
+        return _lib.jack_ringbuffer_write_space(self._ptr)
+
+    @property
+    def size(self):
+        return self._size
+
+    def __repr__(self):
+        return "jack.{0.__class__.__name__}({0.read_space}/{0.size})".format(self)
 
 
 class Status(object):
@@ -1681,7 +2046,7 @@ def set_error_function(callback=None):
         callback(message:str) -> None
 
     """
-    _set_error_or_info_function(callback, _lib.jack_set_error_function)
+    return _set_error_or_info_function(callback, _lib.jack_set_error_function)
 
 
 def set_info_function(callback=None):
@@ -1694,7 +2059,7 @@ def set_info_function(callback=None):
         callback(message:str) -> None
 
     """
-    _set_error_or_info_function(callback, _lib.jack_set_info_function)
+    return _set_error_or_info_function(callback, _lib.jack_set_info_function)
 
 
 def client_pid(name):
@@ -1725,6 +2090,7 @@ def _set_error_or_info_function(callback, setter):
 
         _keepalive[setter] = callback_wrapper
     setter(callback_wrapper)
+    return callback_wrapper
 
 _keepalive = {}
 
