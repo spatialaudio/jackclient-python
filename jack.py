@@ -26,6 +26,7 @@ http://jackclient-python.rtfd.org/
 __version__ = "0.1.0"
 
 from cffi import FFI as _FFI
+import types
 
 _ffi = _FFI()
 _ffi.cdef("""
@@ -825,14 +826,20 @@ class Client(object):
             is called.
 
         """
-        @self._callback("JackProcessCallback", error=STOP_CALLING)
-        def callback_wrapper(frames, _):
-            return callback(frames, userdata)
-
-        _check(_lib.jack_set_process_callback(
-            self._ptr, callback_wrapper, _ffi.NULL),
-            "Error setting process callback")
-        return callback_wrapper
+        if type(callback) == types.FunctionType:
+            @self._callback("JackProcessCallback", error=STOP_CALLING)
+            def callback_wrapper(frames, _):
+                return callback(frames, userdata)
+            _check(_lib.jack_set_process_callback(
+                self._ptr, callback_wrapper, _ffi.NULL),
+                "Error setting process callback")
+            return callback_wrapper
+        else:
+            if userdata is None:
+                userdata = _ffi.NULL
+            _check(_lib.jack_set_process_callback(
+                self._ptr, callback, _ffi.cast("void *", userdata)),
+                "Error setting process callback")
 
     def set_freewheel_callback(self, callback, userdata=None):
         """Register freewheel callback.
