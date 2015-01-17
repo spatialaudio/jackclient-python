@@ -701,6 +701,7 @@ class Client(object):
                             userdata)
 
         _lib.jack_on_info_shutdown(self._ptr, callback_wrapper, _ffi.NULL)
+        return callback_wrapper
 
     def set_process_callback(self, callback, userdata=None):
         """Register process callback.
@@ -746,6 +747,7 @@ class Client(object):
         _check(_lib.jack_set_process_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting process callback")
+        return callback_wrapper
 
     def set_freewheel_callback(self, callback, userdata=None):
         """Register freewheel callback.
@@ -786,6 +788,7 @@ class Client(object):
         _check(_lib.jack_set_freewheel_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting freewheel callback")
+        return callback_wrapper
 
     def set_blocksize_callback(self, callback, userdata=None):
         """Register blocksize callback.
@@ -831,6 +834,7 @@ class Client(object):
         _check(_lib.jack_set_buffer_size_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting blocksize callback")
+        return callback_wrapper
 
     def set_samplerate_callback(self, callback, userdata=None):
         """Register samplerate callback.
@@ -869,6 +873,7 @@ class Client(object):
         _check(_lib.jack_set_sample_rate_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting samplerate callback")
+        return callback_wrapper
 
     def set_client_registration_callback(self, callback, userdata=None):
         """Register client registration callback.
@@ -907,6 +912,7 @@ class Client(object):
         _check(_lib.jack_set_client_registration_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting client registration callback")
+        return callback_wrapper
 
     def set_port_registration_callback(self, callback, userdata=None):
         """Register port registration callback.
@@ -948,6 +954,7 @@ class Client(object):
         _check(_lib.jack_set_port_registration_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting port registration callback")
+        return callback_wrapper
 
     def set_port_connect_callback(self, callback, userdata=None):
         """Register port connect callback.
@@ -991,6 +998,7 @@ class Client(object):
         _check(_lib.jack_set_port_connect_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting port connect callback")
+        return callback_wrapper
 
     def set_port_rename_callback(self, callback, userdata=None):
         """Register port rename callback.
@@ -1034,6 +1042,7 @@ class Client(object):
         _check(_lib.jack_set_port_rename_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting port rename callback")
+        return callback_wrapper
 
     def set_graph_order_callback(self, callback, userdata=None):
         """Register graph order callback.
@@ -1072,6 +1081,7 @@ class Client(object):
         _check(_lib.jack_set_graph_order_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting graph order callback")
+        return callback_wrapper
 
     def set_xrun_callback(self, callback, userdata=None):
         """Register xrun callback.
@@ -1113,6 +1123,7 @@ class Client(object):
         _check(_lib.jack_set_xrun_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting xrun callback")
+        return callback_wrapper
 
     def get_uuid_for_client_name(self, name):
         """Get the session ID for a client name.
@@ -1681,7 +1692,7 @@ def set_error_function(callback=None):
         callback(message:str) -> None
 
     """
-    _set_error_or_info_function(callback, _lib.jack_set_error_function)
+    return _set_error_or_info_function(callback, _lib.jack_set_error_function)
 
 
 def set_info_function(callback=None):
@@ -1694,7 +1705,7 @@ def set_info_function(callback=None):
         callback(message:str) -> None
 
     """
-    _set_error_or_info_function(callback, _lib.jack_set_info_function)
+    return _set_error_or_info_function(callback, _lib.jack_set_info_function)
 
 
 def client_pid(name):
@@ -1725,6 +1736,7 @@ def _set_error_or_info_function(callback, setter):
 
         _keepalive[setter] = callback_wrapper
     setter(callback_wrapper)
+    return callback_wrapper
 
 _keepalive = {}
 
