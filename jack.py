@@ -1320,8 +1320,6 @@ class Client(object):
             port = port._ptr
         elif isinstance(port, str):
             port = self.get_port_by_name(port)._ptr
-        elif not isinstance(port, _ffi.CData):
-            raise TypeError("{0!r} is not a JACK port".format(port))
         return port
 
     def _wrap_port_ptr(self, ptr):
@@ -1366,9 +1364,6 @@ class Port(object):
     """
 
     def __init__(self, port_ptr):
-        if not isinstance(port_ptr, _ffi.CData) or \
-                _ffi.typeof(port_ptr) != _ffi.typeof("jack_port_t*"):
-            raise TypeError("Invalid port pointer")
         self._ptr = port_ptr
 
     def __repr__(self):
