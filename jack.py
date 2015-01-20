@@ -591,7 +591,7 @@ class Client(object):
         """
         _check(_lib.jack_activate(self._ptr), "Error activating JACK client")
 
-    def deactivate(self):
+    def deactivate(self, ignore_errors=True):
         """De-activate JACK client.
 
         Tell the JACK server to remove `self` from the process graph.
@@ -599,8 +599,9 @@ class Client(object):
         clients have no port connections.
 
         """
-        _check(_lib.jack_deactivate(self._ptr),
-               "Error deactivating JACK client")
+        err = _lib.jack_deactivate(self._ptr)
+        if not ignore_errors:
+            _check(err, "Error deactivating JACK client")
 
     def cpu_load(self):
         """Return the current CPU load estimated by JACK.
