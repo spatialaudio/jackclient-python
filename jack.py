@@ -1748,12 +1748,10 @@ class OwnMidiPort(MidiPort, OwnPort):
         time : int
             Time (in samples) relative to the beginning of the current
             audio block.
-        event : bytes or sequence of int
+        event : bytes or buffer or sequence of int
             The actual MIDI event data.
 
-            .. note:: This expects a different data type than
-               returned from :meth:`incoming_midi_events`.
-               Use ``bytes(event)`` to convert.
+            .. note:: Buffer objects are only supported for CFFI >= 0.9.
 
         Raises
         ------
@@ -1761,6 +1759,12 @@ class OwnMidiPort(MidiPort, OwnPort):
             If MIDI event couldn't be written.
 
         """
+        try:
+            event = _ffi.from_buffer(event)
+        except AttributeError:
+            pass  # from_buffer() not supported
+        except TypeError:
+            pass  # input is not a buffer
         _check(_lib.jack_midi_event_write(
             _lib.jack_port_get_buffer(self._ptr, self._client.blocksize),
             time, event, len(event)), "Error writing MIDI event")

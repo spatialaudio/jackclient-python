@@ -23,15 +23,14 @@ outport = client.midi_outports.register("output")
 def callback(frames, userdata):
     outport.clear_buffer()
     for offset, indata in inport.incoming_midi_events():
-        outdata = outport.reserve_midi_event(offset, len(indata))
-        # Note: potential errors are ignored! If len(outdata) == 0 -> error
-        outdata[:] = indata
+        # Note: This may raise an exception:
+        outport.write_midi_event(offset, indata)  # pass through
         if len(indata) == 3:
             status, pitch, vel = struct.unpack('3B', indata)
             if status >> 4 in (NOTEON, NOTEOFF):
                 for i in INTERVALS:
+                    # Note: This may raise an exception:
                     outport.write_midi_event(offset, (status, pitch + i, vel))
-                    # An exception will be raised if MIDI buffer is full
     return jack.CALL_AGAIN
 
 client.set_process_callback(callback)
