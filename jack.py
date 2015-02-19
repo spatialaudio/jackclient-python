@@ -242,97 +242,6 @@ class Client(object):
 
     """A client that can connect to the JACK audio server."""
 
-    class Ports(object):
-
-        """A list of input/output ports.
-
-        This class is not meant to be instantiated directly.  It is only
-        used as :attr:`Client.inports`, :attr:`Client.outports`,
-        :attr:`Client.midi_inports` and :attr:`Client.midi_outports`.
-
-        The ports can be accessed by indexing or by iteration.
-
-        New ports can be added with :meth:`register`, existing ports can
-        be removed by calling their :meth:`~OwnPort.unregister` method.
-
-        """
-
-        def __init__(self, client, porttype, flag):
-            self._client = client
-            self._type = porttype
-            self._flag = flag
-            self._portlist = []
-
-        def __len__(self):
-            return self._portlist.__len__()
-
-        def __getitem__(self, name):
-            return self._portlist.__getitem__(name)
-
-        # No __setitem__!
-
-        def __iter__(self):
-            return self._portlist.__iter__()
-
-        def __repr__(self):
-            return self._portlist.__repr__()
-
-        def register(self, shortname, is_terminal=False, is_physical=False):
-            """Create a new input/output port.
-
-            The new :class:`OwnPort` or :class:`OwnMidiPort` object is
-            automatically added to :attr:`Client.inports`,
-            :attr:`Client.outports`, :attr:`Client.midi_inports` or
-            :attr:`Client.midi_outports`.
-
-            Parameters
-            ----------
-            shortname : str
-                Each port has a short name.  The port's full name contains
-                the name of the client concatenated with a colon (:)
-                followed by its short name.  The :func:`port_name_size` is
-                the maximum length of this full name.  Exceeding that will
-                cause the port registration to fail.
-
-                The port name must be unique among all ports owned by this
-                client.
-                If the name is not unique, the registration will fail.
-            is_terminal : bool
-                For an input port: If ``True``, the data received by the
-                port will not be passed on or made available at any other
-                port.
-                For an output port: If ``True``, the data available at the
-                port does not originate from any other port
-
-                Audio synthesizers, I/O hardware interface clients, HDR
-                systems are examples of clients that would set this flag for
-                their ports.
-            is_physical : bool
-                If ``True`` the port corresponds to some kind of physical
-                I/O connector.
-
-            Returns
-            -------
-            Port
-                A new :class:`OwnPort` or :class:`OwnMidiPort` instance.
-
-            """
-            port = self._client._register_port(
-                shortname, self._type, is_terminal, is_physical, self._flag)
-            self._portlist.append(port)
-            return port
-
-        def clear(self):
-            """Unregister all ports in the list.
-
-            See Also
-            --------
-            OwnPort.unregister
-
-            """
-            while self._portlist:
-                self._portlist[0].unregister()
-
     def __init__(self, name, use_exact_name=False, no_start_server=False,
                  servername=None, session_id=None):
         """Create a new JACK client.
@@ -384,10 +293,10 @@ class Client(object):
         if not self._ptr:
             raise JackError(str(self.status))
 
-        self._inports = self.Ports(self, _AUDIO, _lib.JackPortIsInput)
-        self._outports = self.Ports(self, _AUDIO, _lib.JackPortIsOutput)
-        self._midi_inports = self.Ports(self, _MIDI, _lib.JackPortIsInput)
-        self._midi_outports = self.Ports(self, _MIDI, _lib.JackPortIsOutput)
+        self._inports = Ports(self, _AUDIO, _lib.JackPortIsInput)
+        self._outports = Ports(self, _AUDIO, _lib.JackPortIsOutput)
+        self._midi_inports = Ports(self, _MIDI, _lib.JackPortIsInput)
+        self._midi_outports = Ports(self, _MIDI, _lib.JackPortIsOutput)
         self._keepalive = []
 
     # Avoid confusion if something goes wrong before opening the client:
@@ -1797,6 +1706,97 @@ class OwnMidiPort(MidiPort, OwnPort):
             time, size)
         return _ffi.buffer(buf, size if buf else 0)
 
+
+class Ports(object):
+
+    """A list of input/output ports.
+
+    This class is not meant to be instantiated directly.  It is only
+    used as :attr:`Client.inports`, :attr:`Client.outports`,
+    :attr:`Client.midi_inports` and :attr:`Client.midi_outports`.
+
+    The ports can be accessed by indexing or by iteration.
+
+    New ports can be added with :meth:`register`, existing ports can
+    be removed by calling their :meth:`~OwnPort.unregister` method.
+
+    """
+
+    def __init__(self, client, porttype, flag):
+        self._client = client
+        self._type = porttype
+        self._flag = flag
+        self._portlist = []
+
+    def __len__(self):
+        return self._portlist.__len__()
+
+    def __getitem__(self, name):
+        return self._portlist.__getitem__(name)
+
+    # No __setitem__!
+
+    def __iter__(self):
+        return self._portlist.__iter__()
+
+    def __repr__(self):
+        return self._portlist.__repr__()
+
+    def register(self, shortname, is_terminal=False, is_physical=False):
+        """Create a new input/output port.
+
+        The new :class:`OwnPort` or :class:`OwnMidiPort` object is
+        automatically added to :attr:`Client.inports`,
+        :attr:`Client.outports`, :attr:`Client.midi_inports` or
+        :attr:`Client.midi_outports`.
+
+        Parameters
+        ----------
+        shortname : str
+            Each port has a short name.  The port's full name contains
+            the name of the client concatenated with a colon (:)
+            followed by its short name.  The :func:`port_name_size` is
+            the maximum length of this full name.  Exceeding that will
+            cause the port registration to fail.
+
+            The port name must be unique among all ports owned by this
+            client.
+            If the name is not unique, the registration will fail.
+        is_terminal : bool
+            For an input port: If ``True``, the data received by the
+            port will not be passed on or made available at any other
+            port.
+            For an output port: If ``True``, the data available at the
+            port does not originate from any other port
+
+            Audio synthesizers, I/O hardware interface clients, HDR
+            systems are examples of clients that would set this flag for
+            their ports.
+        is_physical : bool
+            If ``True`` the port corresponds to some kind of physical
+            I/O connector.
+
+        Returns
+        -------
+        Port
+            A new :class:`OwnPort` or :class:`OwnMidiPort` instance.
+
+        """
+        port = self._client._register_port(
+            shortname, self._type, is_terminal, is_physical, self._flag)
+        self._portlist.append(port)
+        return port
+
+    def clear(self):
+        """Unregister all ports in the list.
+
+        See Also
+        --------
+        OwnPort.unregister
+
+        """
+        while self._portlist:
+            self._portlist[0].unregister()
 
 class Status(object):
 
