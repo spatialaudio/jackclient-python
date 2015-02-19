@@ -805,12 +805,17 @@ class Client(object):
             is called.
 
         """
-        @self._callback("JackProcessCallback", error=STOP_CALLING)
-        def callback_wrapper(frames, _):
-            return callback(frames, userdata)
+        if isinstance(callback, _ffi.CData):
+            callback_wrapper = callback
+            arg = _ffi.cast("void *", userdata)
+        else:
+            @self._callback("JackProcessCallback", error=STOP_CALLING)
+            def callback_wrapper(frames, _):
+                return callback(frames, userdata)
+            arg = _ffi.NULL
 
         _check(_lib.jack_set_process_callback(
-            self._ptr, callback_wrapper, _ffi.NULL),
+            self._ptr, callback_wrapper, arg),
             "Error setting process callback")
 
     def set_freewheel_callback(self, callback, userdata=None):
