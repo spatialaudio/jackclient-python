@@ -1798,6 +1798,7 @@ class Ports(object):
         while self._portlist:
             self._portlist[0].unregister()
 
+
 class Status(object):
 
     """Representation of the JACK status bits."""
@@ -1810,7 +1811,7 @@ class Status(object):
                           if not name.startswith('_') and getattr(self, name))
         if not flags:
             flags = "no flags set"
-        return "<JACK status 0x{0:x}: {1}>".format(self._code, flags)
+        return "<jack.Status 0x{0:x}: {1}>".format(self._code, flags)
 
     @property
     def failure(self):
