@@ -1267,7 +1267,7 @@ class Port(object):
     (:class:`OwnPort`, :class:`MidiPort` and :class:`OwnMidiPort`).
 
     New JACK audio/MIDI ports can be created with the
-    :meth:`~Client.Ports.register` method of :attr:`Client.inports`,
+    :meth:`~Ports.register` method of :attr:`Client.inports`,
     :attr:`Client.outports`, :attr:`Client.midi_inports` and
     :attr:`Client.midi_outports`.
 
@@ -1372,7 +1372,7 @@ class MidiPort(Port):
     attributes and methods.
 
     New JACK audio/MIDI ports can be created with the
-    :meth:`~Client.Ports.register` method of :attr:`Client.inports`,
+    :meth:`~Ports.register` method of :attr:`Client.inports`,
     :attr:`Client.outports`, :attr:`Client.midi_inports` and
     :attr:`Client.midi_outports`.
 
@@ -1409,7 +1409,7 @@ class OwnPort(Port):
     :class:`OwnMidiPort` are created.
 
     New JACK audio/MIDI ports can be created with the
-    :meth:`~Client.Ports.register` method of :attr:`Client.inports`,
+    :meth:`~Ports.register` method of :attr:`Client.inports`,
     :attr:`Client.outports`, :attr:`Client.midi_inports` and
     :attr:`Client.midi_outports`.
 
@@ -1558,7 +1558,7 @@ class OwnMidiPort(MidiPort, OwnPort):
     process callback -- see :meth:`Client.set_process_callback`).
 
     New JACK audio/MIDI ports can be created with the
-    :meth:`~Client.Ports.register` method of :attr:`Client.inports`,
+    :meth:`~Ports.register` method of :attr:`Client.inports`,
     :attr:`Client.outports`, :attr:`Client.midi_inports` and
     :attr:`Client.midi_outports`.
 
