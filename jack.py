@@ -1816,12 +1816,12 @@ class Status(object):
     @property
     def failure(self):
         """Overall operation failed."""
-        return bool(self._code & _lib.JackFailure)
+        return self._hasflag(_lib.JackFailure)
 
     @property
     def invalid_option(self):
         """The operation contained an invalid or unsupported option."""
-        return bool(self._code & _lib.JackInvalidOption)
+        return self._hasflag(_lib.JackInvalidOption)
 
     @property
     def name_not_unique(self):
@@ -1836,7 +1836,7 @@ class Status(object):
         long, the open fails instead.
 
         """
-        return bool(self._code & _lib.JackNameNotUnique)
+        return self._hasflag(_lib.JackNameNotUnique)
 
     @property
     def server_started(self):
@@ -1845,52 +1845,56 @@ class Status(object):
         Otherwise, it was running already.
 
         """
-        return bool(self._code & _lib.JackServerStarted)
+        return self._hasflag(_lib.JackServerStarted)
 
     @property
     def server_failed(self):
         """Unable to connect to the JACK server."""
-        return bool(self._code & _lib.JackServerFailed)
+        return self._hasflag(_lib.JackServerFailed)
 
     @property
     def server_error(self):
         """Communication error with the JACK server."""
-        return bool(self._code & _lib.JackServerError)
+        return self._hasflag(_lib.JackServerError)
 
     @property
     def no_such_client(self):
         """Requested client does not exist."""
-        return bool(self._code & _lib.JackNoSuchClient)
+        return self._hasflag(_lib.JackNoSuchClient)
 
     @property
     def load_failure(self):
         """Unable to load internal client."""
-        return bool(self._code & _lib.JackLoadFailure)
+        return self._hasflag(_lib.JackLoadFailure)
 
     @property
     def init_failure(self):
         """Unable to initialize client."""
-        return bool(self._code & _lib.JackInitFailure)
+        return self._hasflag(_lib.JackInitFailure)
 
     @property
     def shm_failure(self):
         """Unable to access shared memory."""
-        return bool(self._code & _lib.JackShmFailure)
+        return self._hasflag(_lib.JackShmFailure)
 
     @property
     def version_error(self):
         """Client's protocol version does not match."""
-        return bool(self._code & _lib.JackVersionError)
+        return self._hasflag(_lib.JackVersionError)
 
     @property
     def backend_error(self):
         """Backend error."""
-        return bool(self._code & _lib.JackBackendError)
+        return self._hasflag(_lib.JackBackendError)
 
     @property
     def client_zombie(self):
         """Client zombified failure."""
-        return bool(self._code & _lib.JackClientZombie)
+        return self._hasflag(_lib.JackClientZombie)
+
+    def _hasflag(self, flag):
+        """Helper function for Status properties."""
+        return bool(self._code & flag)
 
 
 class JackError(Exception):
