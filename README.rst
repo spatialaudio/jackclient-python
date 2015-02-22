@@ -9,6 +9,9 @@ Documentation:
 Code:
   http://github.com/spatialaudio/jackclient-python/
 
+Python Package Index:
+  http://pypi.python.org/pypi/JACK-Client/
+
 Requirements
 ------------
 
