@@ -13,7 +13,16 @@ API Documentation
 
 .. only:: html
 
-  Index
-  -----
+   Index
+   -----
+ 
+   :ref:`genindex`
 
-  * :ref:`genindex`
+Version History
+---------------
+
+.. default-role:: py:obj
+
+.. include:: ../NEWS
+
+.. default-role::
