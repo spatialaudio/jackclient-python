@@ -289,7 +289,7 @@ class Client(object):
             args.append(_ffi.new("char[]", session_id.encode()))
         self._ptr = _lib.jack_client_open(*args)
         self.status = Status(status[0])
-        """JACK status.  See :class:`Status`."""
+        """JACK client status.  See :class:`Status`."""
         if not self._ptr:
             raise JackError(str(self.status))
 
@@ -537,7 +537,7 @@ class Client(object):
         When a connection exists, data written to the source port will
         be available to be read at the destination port.
 
-        The port types must be identical.
+        Audio ports can obviously not be connected with MIDI ports.
 
         Parameters
         ----------
@@ -633,7 +633,7 @@ class Client(object):
         Register a function (and optional argument) to be called if and
         when the JACK server shuts down the client thread.
         The function must be written as if it were an asynchonrous POSIX
-        signal handler --- use only async-safe functions, and remember
+        signal handler -- use only async-safe functions, and remember
         that it is executed from another thread.
         A typical function might set a flag or write to a pipe so that
         the rest of the application knows that the JACK client thread
@@ -708,8 +708,8 @@ class Client(object):
             The `callback` must return zero on success (if `callback`
             shall be called again for the next audio block) and non-zero
             on error (if `callback` shall not be called again).
-            You can use :data:`CALL_AGAIN` and :data:`STOP_CALLING`,
-            respectively.
+            You can use the module constants :data:`CALL_AGAIN` and
+            :data:`STOP_CALLING`, respectively.
         userdata : anything
             This will be passed as second argument whenever `callback`
             is called.
@@ -787,8 +787,8 @@ class Client(object):
                 callback(blocksize:int, userdata) -> int
 
             The `callback` must return zero on success and non-zero on
-            error.  You can use :data:`SUCCESS` and :data:`FAILURE`,
-            respectively.
+            error. You can use the module constants :data:`jack.SUCCESS`
+            and :data:`jack.FAILURE`, respectively.
 
             Although this function is called in the JACK process thread,
             the normal process cycle is suspended during its operation,
@@ -831,8 +831,8 @@ class Client(object):
 
             The argument `samplerate` is the new engine sample rate.
             The `callback` must return zero on success and non-zero on
-            error.  You can use :data:`SUCCESS` and :data:`FAILURE`,
-            respectively.
+            error. You can use the module constants :data:`jack.SUCCESS`
+            and :data:`jack.FAILURE`, respectively.
         userdata : anything
             This will be passed as second argument whenever `callback`
             is called.
@@ -991,8 +991,8 @@ class Client(object):
             :class:`OwnMidiPort` object); the second and third argument
             is the old and new name, respectively.
             The `callback` must return zero on success and non-zero on
-            error.  You can use :data:`SUCCESS` and :data:`FAILURE`,
-            respectively.
+            error. You can use the module constants :data:`jack.SUCCESS`
+            and :data:`jack.FAILURE`, respectively.
         userdata : anything
             This will be passed as fourth argument whenever `callback`
             is called.
@@ -1031,8 +1031,8 @@ class Client(object):
                 callback(userdata) -> int
 
             The `callback` must return zero on success and non-zero on
-            error.  You can use :data:`SUCCESS` and :data:`FAILURE`,
-            respectively.
+            error. You can use the module constants :data:`jack.SUCCESS`
+            and :data:`jack.FAILURE`, respectively.
         userdata : anything
             This will be passed as argument whenever `callback` is
             called.
@@ -1068,8 +1068,8 @@ class Client(object):
                 callback(userdata) -> int
 
             The `callback` must return zero on success and non-zero on
-            error.  You can use :data:`SUCCESS` and :data:`FAILURE`,
-            respectively.
+            error. You can use the module constants :data:`jack.SUCCESS`
+            and :data:`jack.FAILURE`, respectively.
         userdata : anything
             This will be passed as argument whenever `callback` is
             called.
@@ -1371,6 +1371,8 @@ class MidiPort(Port):
     This class is derived from :class:`Port` and has exactly the same
     attributes and methods.
 
+    This class cannot be instantiated directly (see :class:`Port`).
+
     New JACK audio/MIDI ports can be created with the
     :meth:`~Ports.register` method of :attr:`Client.inports`,
     :attr:`Client.outports`, :attr:`Client.midi_inports` and
@@ -1393,20 +1395,7 @@ class OwnPort(Port):
     This class is derived from :class:`Port`.  :class:`OwnPort` objects
     can do everything that :class:`Port` objects can, plus a lot more.
 
-    This class cannot be instantiated directly.  Instead, instances of
-    this class are returned from :meth:`Client.get_port_by_name`,
-    :meth:`Client.get_ports`, :meth:`Client.get_all_connections` and
-    :attr:`connections`.
-    In addition, instances of this class are available in the callbacks
-    which are set with :meth:`Client.set_port_registration_callback`,
-    :meth:`Client.set_port_connect_callback` or
-    :meth:`Client.set_port_rename_callback`.
-
-    Note, however, that if the used :class:`Client` doesn't own the
-    respective port, instances of :class:`Port` (instead of
-    :class:`OwnPort`) will be created.
-    In case of MIDI ports, instances of :class:`MidiPort` or
-    :class:`OwnMidiPort` are created.
+    This class cannot be instantiated directly (see :class:`Port`).
 
     New JACK audio/MIDI ports can be created with the
     :meth:`~Ports.register` method of :attr:`Client.inports`,
@@ -1537,6 +1526,9 @@ class OwnPort(Port):
     def get_array(self):
         """Get audio buffer as NumPy array.
 
+        Make sure to ``import numpy`` before calling this, otherwise the
+        first call might take a long time.
+
         See Also
         --------
         get_buffer
@@ -1556,6 +1548,8 @@ class OwnMidiPort(MidiPort, OwnPort):
     and :meth:`get_array` are disabled.  Instead, it has methods for
     sending and receiving MIDI events (to be used from within the
     process callback -- see :meth:`Client.set_process_callback`).
+
+    This class cannot be instantiated directly (see :class:`Port`).
 
     New JACK audio/MIDI ports can be created with the
     :meth:`~Ports.register` method of :attr:`Client.inports`,
