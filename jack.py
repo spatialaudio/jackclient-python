@@ -1277,7 +1277,7 @@ class Port(object):
         self._ptr = port_ptr
 
     def __repr__(self):
-        return "jack.{0.__class__.__name__}({0.name!r})".format(self)
+        return "jack.{0.__class__.__name__}('{0.name}')".format(self)
 
     def __eq__(self, other):
         """Ports are equal if their underlying port pointers are."""
