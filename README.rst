@@ -98,63 +98,73 @@ to your working directory (or to any directory in your Python path).
 Usage
 -----
 
-First, import the module::
+First, import the module:
 
-   import jack
+>>> import jack
 
-Then, you most likely want to create a new JACK client::
+Then, you most likely want to create a new JACK client:
 
-   client = jack.Client("MyGreatClient")
+>>> client = jack.Client("MyGreatClient")
 
-You probably want to create some input and output ports, too::
+You probably want to create some input and output ports, too:
 
-   client.inports.register("input_1")
-   client.outports.register("output_1")
+>>> client.inports.register("input_1")
+jack.OwnPort('MyGreatClient:input_1')
+>>> client.outports.register("output_1")
+jack.OwnPort('MyGreatClient:output_1')
 
-These functions return the newly created port, so you can save it for later::
+As you can see, these functions return the newly created port, so you can save
+it for later:
 
-   in2 = client.inports.register("input_2")
-   out2 = client.outports.register("output_2")
+>>> in2 = client.inports.register("input_2")
+>>> out2 = client.outports.register("output_2")
 
 To see what you can do with the returned objects, have a look at the
 documentation of the class `jack.OwnPort`.
 
-You can also check what other JACK ports are available::
+You can also check what other JACK ports are available (your output may have
+additional ports in it):
 
-   portlist = client.get_ports()
+>>> client.get_ports()  # doctest: +SKIP
+[jack.Port('system:capture_1'),
+ jack.Port('system:capture_2'),
+ jack.Port('system:playback_1'),
+ jack.Port('system:playback_2'),
+ jack.OwnPort('MyGreatClient:input_1'),
+ jack.OwnPort('MyGreatClient:output_1'),
+ jack.OwnPort('MyGreatClient:input_2'),
+ jack.OwnPort('MyGreatClient:output_2')]
 
 If you want, you can also set all kinds of callback functions, for details see
 the API documentation for the class `jack.Client`.
 
-Once you are ready to run, you should activate your client::
+Once you are ready to run, you should activate your client:
 
-   client.activate()
+>>> client.activate()
 
 Once the client is activated, you can make connections (this isn't possible
-before activating the client)::
+before activating the client):
 
-   client.connect("system:capture_1", "MyGreatClient:input_1")
-   client.connect("MyGreatClient:output_1", "system:playback_1")
+>>> client.connect("system:capture_1", "MyGreatClient:input_1")
+>>> client.connect("MyGreatClient:output_1", "system:playback_1")
 
-You can also use the port objects from before instead of port names::
+You can also use the port objects from before instead of port names:
 
-   client.connect(out2, "system:playback_2")
-   in2.connect("system:capture_2")
+>>> client.connect(out2, "system:playback_2")
+>>> in2.connect("system:capture_2")
 
-You can also disconnect ports, there are again several possibilities::
+You can also disconnect ports, there are again several possibilities:
 
-   client.disconnect("system:capture_1", "MyGreatClient:input_1")
-   client.disconnect(out2, "system:playback_2")
-   # disconnect all connections with in2:
-   in2.disconnect()
+>>> client.disconnect("system:capture_1", "MyGreatClient:input_1")
+>>> client.disconnect(out2, "system:playback_2")
+>>> in2.disconnect()  # disconnect all connections with in2
 
-If you don't need your ports anymore, you can un-register them::
+If you don't need your ports anymore, you can un-register them:
 
-   in2.unregister()
-   # unregister all output ports:
-   client.outports.clear()
+>>> in2.unregister()
+>>> client.outports.clear()  # unregister all output ports
 
-Finally, you can de-activate your JACK client and close it::
+Finally, you can de-activate your JACK client and close it:
 
-   client.deactivate()
-   client.close()
+>>> client.deactivate()
+>>> client.close()
