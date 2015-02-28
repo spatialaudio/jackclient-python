@@ -288,8 +288,7 @@ class Client(object):
             args[1] |= _lib.JackSessionID
             args.append(_ffi.new("char[]", session_id.encode()))
         self._ptr = _lib.jack_client_open(*args)
-        self.status = Status(status[0])
-        """JACK client status.  See :class:`Status`."""
+        self._status = Status(status[0])
         if not self._ptr:
             raise JackError(str(self.status))
 
@@ -347,6 +346,11 @@ class Client(object):
     def blocksize(self, blocksize):
         _check(_lib.jack_set_buffer_size(self._ptr, blocksize),
                "Error setting JACK blocksize")
+
+    @property
+    def status(self):
+        """JACK client status.  See :class:`Status`."""
+        return self._status
 
     @property
     def realtime(self):
