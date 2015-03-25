@@ -2,6 +2,8 @@
 
 .. include:: ../README.rst
 
+.. include:: ../CONTRIBUTING.rst
+
 .. default-role::
 
 API Documentation
