@@ -355,7 +355,6 @@ class Client(object):
 
         """
         status = _ffi.new("jack_status_t*")
-        self.position = _ffi.new("jack_position_t*")
         args = [name.encode(), _lib.JackNullOption, status]
         if use_exact_name:
             args[1] |= _lib.JackUseExactName
@@ -377,6 +376,7 @@ class Client(object):
         self._midi_inports = Ports(self, _MIDI, _lib.JackPortIsInput)
         self._midi_outports = Ports(self, _MIDI, _lib.JackPortIsOutput)
         self._keepalive = []
+        self._position = _ffi.new("jack_position_t*")
 
     # Avoid confusion if something goes wrong before opening the client:
     _ptr = _ffi.NULL
@@ -683,8 +683,8 @@ class Client(object):
     def transport_query(self):
         """return current transport position."""
         # Test rolling transport status
-        if _lib.jack_transport_query(self._ptr, self.position) == 1:
-            return self.position
+        if _lib.jack_transport_query(self._ptr, self._position) == 1:
+            return self._position
         else:
             return None
 
