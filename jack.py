@@ -34,7 +34,7 @@ _ffi.cdef("""
 
 typedef uint64_t jack_uuid_t;
 typedef uint32_t jack_nframes_t;
-/* TODO: jack_time_t */
+typedef uint64_t jack_time_t;
 typedef struct _jack_port jack_port_t;
 typedef struct _jack_client jack_client_t;
 typedef uint32_t jack_port_id_t;
@@ -93,82 +93,35 @@ typedef enum {
     JackTransportNetStarting = 4,
 } jack_transport_state_t;
 typedef uint64_t jack_unique_t;
-typedef uint64_t jack_time_t;
-typedef uint32_t jack_nframes_t;
 typedef enum {
-
-    JackPositionBBT = 0x10,     /**< Bar, Beat, Tick */
-    JackPositionTimecode = 0x20,        /**< External timecode */
-    JackBBTFrameOffset =      0x40,     /**< Frame offset of BBT information */
-    JackAudioVideoRatio =     0x80, /**< audio frames per video frame */
-    JackVideoFrameOffset =   0x100  /**< frame offset of first video frame */
+    JackPositionBBT = 0x10,
+    JackPositionTimecode = 0x20,
+    JackBBTFrameOffset =      0x40,
+    JackAudioVideoRatio =     0x80,
+    JackVideoFrameOffset =   0x100
 
 } jack_position_bits_t;
-
 struct _jack_position {
-    jack_unique_t       unique_1;       /**< unique ID */
-    jack_time_t         usecs;          /**< monotonic, free-rolling */
-    jack_nframes_t      frame_rate;     /**< current frame rate (per second) */
-    jack_nframes_t      frame;          /**< frame number, always present */
-
-    jack_position_bits_t valid;         /**< which other fields are valid */
-
-    /* JackPositionBBT fields: */
-    int32_t             bar;            /**< current bar */
-    int32_t             beat;           /**< current beat-within-bar */
-    int32_t             tick;           /**< current tick-within-beat */
+    jack_unique_t       unique_1;
+    jack_time_t         usecs;
+    jack_nframes_t      frame_rate;
+    jack_nframes_t      frame;
+    jack_position_bits_t valid;
+    int32_t             bar;
+    int32_t             beat;
+    int32_t             tick;
     double              bar_start_tick;
-
-    float               beats_per_bar;  /**< time signature "numerator" */
-    float               beat_type;      /**< time signature "denominator" */
+    float               beats_per_bar;
+    float               beat_type;
     double              ticks_per_beat;
     double              beats_per_minute;
-
-    /* JackPositionTimecode fields:     (EXPERIMENTAL: could change) */
-    double              frame_time;     /**< current time in seconds */
-    double              next_time;      /**< next sequential frame_time
-                         (unless repositioned) */
-
-    /* JackBBTFrameOffset fields: */
-    jack_nframes_t      bbt_offset;     /**< frame offset for the BBT fields
-                         (the given bar, beat, and tick
-                         values actually refer to a time
-                         frame_offset frames before the
-                         start of the cycle), should
-                         be assumed to be 0 if
-                         JackBBTFrameOffset is not
-                         set. If JackBBTFrameOffset is
-                         set and this value is zero, the BBT
-                         time refers to the first frame of this
-                         cycle. If the value is positive,
-                         the BBT time refers to a frame that
-                         many frames before the start of the
-                         cycle. */
-
-    /* JACK video positional data (experimental) */
-
-    float               audio_frames_per_video_frame; /**< number of audio frames
-                         per video frame. Should be assumed
-                         zero if JackAudioVideoRatio is not
-                         set. If JackAudioVideoRatio is set
-                         and the value is zero, no video
-                         data exists within the JACK graph */
-
-    jack_nframes_t      video_offset;   /**< audio frame at which the first video
-                         frame in this cycle occurs. Should
-                         be assumed to be 0 if JackVideoFrameOffset
-                         is not set. If JackVideoFrameOffset is
-                         set, but the value is zero, there is
-                         no video frame within this cycle. */
-
-    /* For binary compatibility, new fields should be allocated from
-     * this padding area with new valid bits controlling access, so
-     * the existing structure size and offsets are preserved. */
+    double              frame_time;
+    double              next_time;
+    jack_nframes_t      bbt_offset;
+    float               audio_frames_per_video_frame;
+    jack_nframes_t      video_offset;
     int32_t             padding[7];
-
-    /* When (unique_1 == unique_2) the contents are consistent. */
-    jack_unique_t       unique_2;       /**< unique ID */
-
+    jack_unique_t       unique_2;
 };
 
 typedef struct _jack_position jack_position_t;
@@ -2021,8 +1974,6 @@ class Status(object):
     def _hasflag(self, flag):
         """Helper function for Status properties."""
         return bool(self._code & flag)
-
-
 
 
 class JackError(Exception):
