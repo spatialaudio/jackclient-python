@@ -224,9 +224,9 @@ float jack_get_xrun_delayed_usecs(jack_client_t* client);
 typedef unsigned char jack_midi_data_t;
 typedef struct _jack_midi_event
 {
-    jack_nframes_t    time;   /* Sample index at which event is valid */
-    size_t            size;   /* Number of bytes of data in buffer */
-    jack_midi_data_t* buffer; /* Raw MIDI data */
+    jack_nframes_t time;
+    size_t size;
+    jack_midi_data_t* buffer;
 } jack_midi_event_t;
 uint32_t jack_midi_get_event_count(void* port_buffer);
 int jack_midi_event_get(jack_midi_event_t* event, void* port_buffer, uint32_t event_index);
