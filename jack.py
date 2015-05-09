@@ -100,30 +100,6 @@ typedef enum {
     JackAudioVideoRatio = 0x80,
     JackVideoFrameOffset = 0x100,
 } jack_position_bits_t;
-struct _jack_position {
-    jack_unique_t       unique_1;
-    jack_time_t         usecs;
-    jack_nframes_t      frame_rate;
-    jack_nframes_t      frame;
-    jack_position_bits_t valid;
-    int32_t             bar;
-    int32_t             beat;
-    int32_t             tick;
-    double              bar_start_tick;
-    float               beats_per_bar;
-    float               beat_type;
-    double              ticks_per_beat;
-    double              beats_per_minute;
-    double              frame_time;
-    double              next_time;
-    jack_nframes_t      bbt_offset;
-    float               audio_frames_per_video_frame;
-    jack_nframes_t      video_offset;
-    int32_t             padding[7];
-    jack_unique_t       unique_2;
-};
-
-typedef struct _jack_position jack_position_t;
 
 /* jack.h */
 
@@ -221,9 +197,7 @@ void jack_free(void* ptr);
 /* transport.h */
 
 int  jack_transport_locate(jack_client_t* client, jack_nframes_t frame);
-jack_transport_state_t jack_transport_query(const jack_client_t* client, jack_position_t* pos);
 jack_nframes_t jack_get_current_transport_frame(const jack_client_t* client);
-int  jack_transport_reposition(jack_client_t* client, const jack_position_t* pos);
 void jack_transport_start(jack_client_t* client);
 void jack_transport_stop(jack_client_t* client);
 
@@ -253,6 +227,35 @@ uint32_t jack_midi_get_lost_event_count(void* port_buffer);
 
 #define EEXIST 17
 """)
+
+# Packed structure
+_ffi.cdef("""
+struct _jack_position {
+    jack_unique_t       unique_1;
+    jack_time_t         usecs;
+    jack_nframes_t      frame_rate;
+    jack_nframes_t      frame;
+    jack_position_bits_t valid;
+    int32_t             bar;
+    int32_t             beat;
+    int32_t             tick;
+    double              bar_start_tick;
+    float               beats_per_bar;
+    float               beat_type;
+    double              ticks_per_beat;
+    double              beats_per_minute;
+    double              frame_time;
+    double              next_time;
+    jack_nframes_t      bbt_offset;
+    float               audio_frames_per_video_frame;
+    jack_nframes_t      video_offset;
+    int32_t             padding[7];
+    jack_unique_t       unique_2;
+};
+typedef struct _jack_position jack_position_t;
+jack_transport_state_t jack_transport_query(const jack_client_t* client, jack_position_t* pos);
+int  jack_transport_reposition(jack_client_t* client, const jack_position_t* pos);
+""", packed=True)
 
 _lib = _ffi.dlopen("jack")
 
