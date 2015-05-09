@@ -96,10 +96,9 @@ typedef uint64_t jack_unique_t;
 typedef enum {
     JackPositionBBT = 0x10,
     JackPositionTimecode = 0x20,
-    JackBBTFrameOffset =      0x40,
-    JackAudioVideoRatio =     0x80,
-    JackVideoFrameOffset =   0x100
-
+    JackBBTFrameOffset = 0x40,
+    JackAudioVideoRatio = 0x80,
+    JackVideoFrameOffset = 0x100,
 } jack_position_bits_t;
 struct _jack_position {
     jack_unique_t       unique_1;
