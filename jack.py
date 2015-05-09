@@ -34,7 +34,7 @@ _ffi.cdef("""
 
 typedef uint64_t jack_uuid_t;
 typedef uint32_t jack_nframes_t;
-/* TODO: jack_time_t */
+typedef uint64_t jack_time_t;
 typedef struct _jack_port jack_port_t;
 typedef struct _jack_client jack_client_t;
 typedef uint32_t jack_port_id_t;
@@ -92,7 +92,14 @@ typedef enum {
     JackTransportStarting = 3,
     JackTransportNetStarting = 4,
 } jack_transport_state_t;
-typedef struct _jack_position jack_position_t;
+typedef uint64_t jack_unique_t;
+typedef enum {
+    JackPositionBBT = 0x10,
+    JackPositionTimecode = 0x20,
+    JackBBTFrameOffset = 0x40,
+    JackAudioVideoRatio = 0x80,
+    JackVideoFrameOffset = 0x100,
+} jack_position_bits_t;
 
 /* jack.h */
 
@@ -190,9 +197,7 @@ void jack_free(void* ptr);
 /* transport.h */
 
 int  jack_transport_locate(jack_client_t* client, jack_nframes_t frame);
-jack_transport_state_t jack_transport_query(const jack_client_t* client, jack_position_t* pos);
 jack_nframes_t jack_get_current_transport_frame(const jack_client_t* client);
-int  jack_transport_reposition(jack_client_t* client, const jack_position_t* pos);
 void jack_transport_start(jack_client_t* client);
 void jack_transport_stop(jack_client_t* client);
 
@@ -222,6 +227,35 @@ uint32_t jack_midi_get_lost_event_count(void* port_buffer);
 
 #define EEXIST 17
 """)
+
+# Packed structure
+_ffi.cdef("""
+struct _jack_position {
+    jack_unique_t       unique_1;
+    jack_time_t         usecs;
+    jack_nframes_t      frame_rate;
+    jack_nframes_t      frame;
+    jack_position_bits_t valid;
+    int32_t             bar;
+    int32_t             beat;
+    int32_t             tick;
+    double              bar_start_tick;
+    float               beats_per_bar;
+    float               beat_type;
+    double              ticks_per_beat;
+    double              beats_per_minute;
+    double              frame_time;
+    double              next_time;
+    jack_nframes_t      bbt_offset;
+    float               audio_frames_per_video_frame;
+    jack_nframes_t      video_offset;
+    int32_t             padding[7];
+    jack_unique_t       unique_2;
+};
+typedef struct _jack_position jack_position_t;
+jack_transport_state_t jack_transport_query(const jack_client_t* client, jack_position_t* pos);
+int  jack_transport_reposition(jack_client_t* client, const jack_position_t* pos);
+""", packed=True)
 
 _lib = _ffi.dlopen("jack")
 
@@ -297,6 +331,7 @@ class Client(object):
         self._midi_inports = Ports(self, _MIDI, _lib.JackPortIsInput)
         self._midi_outports = Ports(self, _MIDI, _lib.JackPortIsOutput)
         self._keepalive = []
+        self._position = _ffi.new("jack_position_t*")
 
     # Avoid confusion if something goes wrong before opening the client:
     _ptr = _ffi.NULL
@@ -599,6 +634,54 @@ class Client(object):
         """
         _check(_lib.jack_transport_locate(self._ptr, frame),
                "Error locating JACK transport")
+
+    def transport_query(self):
+        """return current transport state and position.
+
+        Return a tuple with current transport state and position informations
+
+        Transport state
+        ---------------
+        Transport state can take following value :
+            * 0 : Stopped
+            * 1 : Rolling (playing)
+            * 2 : Looping
+            * 3 : Starting (preparing playback)
+            * 4 : Net Starting
+
+        Position informations
+        ---------------------
+        Position information are stored in CFFI object. This object have
+        following attribute :
+            * usecs : monotonic, free-rolling
+            * frame_rate : current frame rate (per second)
+            * frame : frame number (frame count since transport start)
+            * valid : indicate which fields are present and valid (see below)
+            * bar: current bar
+            * beat: current beat-within-bar
+            * tick: current tick-within-beat
+            * bar_start_tick
+            * bbt_offset : frame offset for the BBT fields (see below)
+            * beats_per_bar : time signature "numerator"
+            * beat_type : time signature "denominator"
+            * ticks_per_beat : ticks per beat
+            * beats_per_minute : current tempo (BPM)
+            * frame_time : current time in seconds
+            * next_time : next sequential frame_time (unless repositioned)
+            * audio_frames_per_video_frame
+            * video_offset
+
+        valid field is can take following values (bit flag) :
+            * 0x10 : bar, beat, tick, bar_start_tick, beats_per_bar,
+                     beat_type, ticks_per_beat, beats_per_minute
+            * 0x20 : frame_time, next_time
+            * 0x40 : bbt_offset
+            * 0x80 : audio_frames_per_video_frame
+            * 0x100 : video_offset
+
+        """
+        transport_state = _lib.jack_transport_query(self._ptr, self._position)
+        return transport_state, self._position
 
     def set_freewheel(self, onoff):
         """Start/Stop JACK's "freewheel" mode.
