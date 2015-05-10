@@ -9,3 +9,8 @@ class FFI(object):
         return self
 
     NULL = NotImplemented
+
+    JackTransportStopped = 0
+    JackTransportRolling = 1
+    JackTransportStarting = 3
+    JackTransportNetStarting = 4

@@ -274,6 +274,15 @@ _lib = _ffi.dlopen("jack")
 _AUDIO = b"32 bit float mono audio"
 _MIDI = b"8 bit raw midi"
 
+STOPPED = _lib.JackTransportStopped
+"""Transport halted."""
+ROLLING = _lib.JackTransportRolling
+"""Transport playing."""
+STARTING = _lib.JackTransportStarting
+"""Waiting for sync ready."""
+NETSTARTING = _lib.JackTransportNetStarting
+"""Waiting for sync ready on the network."""
+
 CALL_AGAIN = 0
 """Possible return value for process callback."""
 STOP_CALLING = 1
@@ -654,11 +663,9 @@ class Client(object):
 
         Transport state
         ---------------
-        Transport state can take following value :
-            * 0 : Stopped
-            * 1 : Rolling (playing)
-            * 3 : Starting (preparing playback)
-            * 4 : Net Starting
+        Transport state can take following values:
+            :attr:`STOPPED`, :attr:`ROLLING`, :attr:`STARTING` and
+            :attr:`NETSTARTING`.
 
         Position informations
         ---------------------
