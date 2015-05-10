@@ -77,7 +77,9 @@ typedef int (*JackPortRenameCallback)(jack_port_id_t port, const char* old_name,
 typedef void (*JackFreewheelCallback)(int starting, void* arg);
 /* not implemented: JackShutdownCallback */
 typedef void (*JackInfoShutdownCallback)(jack_status_t code, const char* reason, void* arg);
-/* hardcoded: JACK_DEFAULT_AUDIO_TYPE, jack_default_audio_sample_t */
+/* JACK_DEFAULT_AUDIO_TYPE: see _AUDIO */
+/* JACK_DEFAULT_MIDI_TYPE: see _MIDI */
+/* not implemented: jack_default_audio_sample_t (hard-coded as float) */
 enum JackPortFlags {
     JackPortIsInput = 0x1,
     JackPortIsOutput = 0x2,
@@ -102,6 +104,8 @@ typedef enum {
 } jack_position_bits_t;
 /* _jack_position: see below in "packed" section */
 typedef struct _jack_position jack_position_t;
+/* deprecated: jack_transport_bits_t */
+/* deprecated: jack_transport_info_t */
 
 /* jack.h */
 
@@ -198,12 +202,18 @@ void jack_free(void* ptr);
 
 /* transport.h */
 
+/* TODO: jack_release_timebase */
+/* TODO: jack_set_sync_callback */
+/* TODO: jack_set_sync_timeout */
+/* TODO: jack_set_timebase_callback */
 int  jack_transport_locate(jack_client_t* client, jack_nframes_t frame);
 jack_transport_state_t jack_transport_query(const jack_client_t* client, jack_position_t* pos);
 jack_nframes_t jack_get_current_transport_frame(const jack_client_t* client);
 int  jack_transport_reposition(jack_client_t* client, const jack_position_t* pos);
 void jack_transport_start(jack_client_t* client);
 void jack_transport_stop(jack_client_t* client);
+/* deprecated: jack_get_transport_info */
+/* deprecated: jack_set_transport_info */
 
 /* statistics.h */
 
