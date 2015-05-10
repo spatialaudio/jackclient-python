@@ -234,27 +234,28 @@ uint32_t jack_midi_get_lost_event_count(void* port_buffer);
 
 # Packed structure
 _ffi.cdef("""
-struct _jack_position {
-    jack_unique_t       unique_1;
-    jack_time_t         usecs;
-    jack_nframes_t      frame_rate;
-    jack_nframes_t      frame;
+struct _jack_position
+{
+    jack_unique_t unique_1;
+    jack_time_t usecs;
+    jack_nframes_t frame_rate;
+    jack_nframes_t frame;
     jack_position_bits_t valid;
-    int32_t             bar;
-    int32_t             beat;
-    int32_t             tick;
-    double              bar_start_tick;
-    float               beats_per_bar;
-    float               beat_type;
-    double              ticks_per_beat;
-    double              beats_per_minute;
-    double              frame_time;
-    double              next_time;
-    jack_nframes_t      bbt_offset;
-    float               audio_frames_per_video_frame;
-    jack_nframes_t      video_offset;
-    int32_t             padding[7];
-    jack_unique_t       unique_2;
+    int32_t bar;
+    int32_t beat;
+    int32_t tick;
+    double bar_start_tick;
+    float beats_per_bar;
+    float beat_type;
+    double ticks_per_beat;
+    double beats_per_minute;
+    double frame_time;
+    double next_time;
+    jack_nframes_t bbt_offset;
+    float audio_frames_per_video_frame;
+    jack_nframes_t video_offset;
+    int32_t padding[7];
+    jack_unique_t unique_2;
 };
 """, packed=True)
 
