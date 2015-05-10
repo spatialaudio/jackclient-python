@@ -2,7 +2,7 @@
 
 
 class FFI(object):
-    def cdef(self, _):
+    def cdef(self, _, packed=NotImplemented):
         pass
 
     def dlopen(self, _):
