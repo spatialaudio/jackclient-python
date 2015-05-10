@@ -100,6 +100,8 @@ typedef enum {
     JackAudioVideoRatio = 0x80,
     JackVideoFrameOffset = 0x100,
 } jack_position_bits_t;
+/* _jack_position: see below in "packed" section */
+typedef struct _jack_position jack_position_t;
 
 /* jack.h */
 
@@ -197,7 +199,9 @@ void jack_free(void* ptr);
 /* transport.h */
 
 int  jack_transport_locate(jack_client_t* client, jack_nframes_t frame);
+jack_transport_state_t jack_transport_query(const jack_client_t* client, jack_position_t* pos);
 jack_nframes_t jack_get_current_transport_frame(const jack_client_t* client);
+int  jack_transport_reposition(jack_client_t* client, const jack_position_t* pos);
 void jack_transport_start(jack_client_t* client);
 void jack_transport_stop(jack_client_t* client);
 
@@ -252,9 +256,6 @@ struct _jack_position {
     int32_t             padding[7];
     jack_unique_t       unique_2;
 };
-typedef struct _jack_position jack_position_t;
-jack_transport_state_t jack_transport_query(const jack_client_t* client, jack_position_t* pos);
-int  jack_transport_reposition(jack_client_t* client, const jack_position_t* pos);
 """, packed=True)
 
 _lib = _ffi.dlopen("jack")
