@@ -88,7 +88,7 @@ enum JackPortFlags {
 typedef enum {
     JackTransportStopped = 0,
     JackTransportRolling = 1,
-    JackTransportLooping = 2,
+    JackTransportLooping = 2,  /* deprecated */
     JackTransportStarting = 3,
     JackTransportNetStarting = 4,
 } jack_transport_state_t;
@@ -647,7 +647,6 @@ class Client(object):
         Transport state can take following value :
             * 0 : Stopped
             * 1 : Rolling (playing)
-            * 2 : Looping
             * 3 : Starting (preparing playback)
             * 4 : Net Starting
 
