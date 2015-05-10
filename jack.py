@@ -657,49 +657,28 @@ class Client(object):
                "Error locating JACK transport")
 
     def transport_query(self):
-        """return current transport state and position.
+        """Query the current transport state and position.
 
-        Return a tuple with current transport state and position informations
+        This function is realtime-safe, and can be called from any
+        thread.  If called from the process thread, the returned
+        position corresponds to the first frame of the current cycle and
+        the state returned is valid for the entire cycle.
 
-        Transport state
-        ---------------
-        Transport state can take following values:
+        Returns
+        -------
+        state : int
+            The transport state can take following values:
             :attr:`STOPPED`, :attr:`ROLLING`, :attr:`STARTING` and
             :attr:`NETSTARTING`.
+        position : CFFI struct object
+            See the `JACK transport documentation`__ for the available
+            fields.
 
-        Position informations
-        ---------------------
-        Position information are stored in CFFI object. This object have
-        following attribute :
-            * usecs : monotonic, free-rolling
-            * frame_rate : current frame rate (per second)
-            * frame : frame number (frame count since transport start)
-            * valid : indicate which fields are present and valid (see below)
-            * bar: current bar
-            * beat: current beat-within-bar
-            * tick: current tick-within-beat
-            * bar_start_tick
-            * bbt_offset : frame offset for the BBT fields (see below)
-            * beats_per_bar : time signature "numerator"
-            * beat_type : time signature "denominator"
-            * ticks_per_beat : ticks per beat
-            * beats_per_minute : current tempo (BPM)
-            * frame_time : current time in seconds
-            * next_time : next sequential frame_time (unless repositioned)
-            * audio_frames_per_video_frame
-            * video_offset
-
-        valid field is can take following values (bit flag) :
-            * 0x10 : bar, beat, tick, bar_start_tick, beats_per_bar,
-                     beat_type, ticks_per_beat, beats_per_minute
-            * 0x20 : frame_time, next_time
-            * 0x40 : bbt_offset
-            * 0x80 : audio_frames_per_video_frame
-            * 0x100 : video_offset
+            __ http://jackaudio.org/files/docs/html/structjack__position__t.html
 
         """
-        transport_state = _lib.jack_transport_query(self._ptr, self._position)
-        return transport_state, self._position
+        state = _lib.jack_transport_query(self._ptr, self._position)
+        return state, self._position
 
     def set_freewheel(self, onoff):
         """Start/Stop JACK's "freewheel" mode.
