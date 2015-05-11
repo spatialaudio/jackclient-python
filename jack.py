@@ -225,6 +225,7 @@ size_t jack_ringbuffer_read_space(const jack_ringbuffer_t* rb);
 int jack_ringbuffer_mlock(jack_ringbuffer_t* rb);
 void jack_ringbuffer_reset(jack_ringbuffer_t* rb);
 void jack_ringbuffer_reset_size (jack_ringbuffer_t* rb, size_t sz);
+/* Note: "char*" was changed to "unsigned char*" to support iterables of int */
 size_t jack_ringbuffer_write(jack_ringbuffer_t* rb, const unsigned char* src, size_t cnt);
 void jack_ringbuffer_write_advance(jack_ringbuffer_t* rb, size_t cnt);
 size_t jack_ringbuffer_write_space(const jack_ringbuffer_t* rb);
