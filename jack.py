@@ -1908,28 +1908,36 @@ class Ports(object):
 
 
 class RingBuffer(object):
-    """JACK's lock-free ringbuffer.
 
-    These are a good way to pass data between threads, when streaming
-    realtime data to slower media, like audio file playback or recording
-
-    """
+    """JACK's lock-free ringbuffer."""
 
     def __init__(self, size):
-        """Allocates a ringbuffer data structure of a specified size.
+        """Create a lock-free ringbuffer.
+
+        A ringbuffer is a good way to pass data between threads
+        (e.g. between the main program and the process callback),
+        when streaming realtime data to slower media, like audio file
+        playback or recording.
+
+        The key attribute of a ringbuffer is that it can be safely
+        accessed by two threads simultaneously -- one reading from the
+        buffer and the other writing to it -- without using any
+        synchronization or mutual exclusion primitives.  For this to
+        work correctly, there can only be a single reader and a single
+        writer thread.  Their identities cannot be interchanged.
 
         Parameters
         ----------
         size : int
-            Size in bytes of the ringbuffer. JACK will declare a buffer of at
-            least this size, but one of the spaces is reserved. Use
-            :meth:`write_space` to determine the actual size available
-            for writing.
+            Size in bytes.  JACK will allocate a buffer of at least this
+            size (rounded up to the next power of 2), but one byte is
+            reserved for internal use.  Use :attr:`write_space` to
+            determine the actual size available for writing.
 
         """
         ptr = _lib.jack_ringbuffer_create(size)
         if not ptr:
-            raise JackError("Could not create ringbuffer")
+            raise JackError("Could not create RingBuffer")
         self._ptr = _ffi.gc(ptr, _lib.jack_ringbuffer_free)
 
     def read(self, size):
@@ -1943,9 +1951,13 @@ class RingBuffer(object):
         Returns
         -------
         buffer
-            A python buffer object containing the data requested.
-            Note that the buffer might contain less bytes than requested
-            if the buffer has none left.
+            A buffer object containing the requested data.
+            If no more data is left (see :attr:`read_space`), a smaller
+            (or even empty) buffer is returned.
+
+        See Also
+        --------
+        peek, :attr:`read_space`, :attr:`read_buffers`
 
         """
         data = _ffi.new("unsigned char[]", size)
@@ -1955,10 +1967,11 @@ class RingBuffer(object):
     def peek(self, size):
         """Peek at data from the ringbuffer.
 
-        Opposed to :meth:`read` this function does not move the read pointer.
-        Thus it's a convenient way to inspect data in the ringbuffer in a
-        continous fashion. The price is that the data is copied into a user
-        provided buffer. For "raw" non-copy inspection of the data in the
+        Opposed to :meth:`read` this function does not move the read
+        pointer.  Thus it's a convenient way to inspect data in the
+        ringbuffer in a continuous fashion.
+        The price is that the data is copied into a newly allocated
+        buffer.  For "raw" non-copy inspection of the data in the
         ringbuffer use :attr:`read_buffers`.
 
         Parameters
@@ -1968,9 +1981,14 @@ class RingBuffer(object):
 
         Returns
         -------
-            A python buffer object containing at the data requested.
-            Note that the buffer might contain less bytes than requested
-            if the buffer has none left.
+        buffer
+            A buffer object containing the requested data.
+            If no more data is left (see :attr:`read_space`), a smaller
+            (or even empty) buffer is returned.
+
+        See Also
+        --------
+        read, :attr:`read_space`, :attr:`read_buffers`
 
         """
         data = _ffi.new("unsigned char[]", size)
@@ -1978,17 +1996,23 @@ class RingBuffer(object):
         return _ffi.buffer(data, size)
 
     def write(self, data):
-        """Write data to the ringbuffer.
+        """Write data into the ringbuffer.
 
         Parameters
         ----------
-        data : buffer
+        data : buffer or bytes or iterable of int
             Bytes to be written to the ringbuffer.
 
         Returns
         -------
-            The number of bytes writen, which could be less than the length
-            of `data` if there was no space left.
+        int
+            The number of bytes written, which could be less than the
+            length of `data` if there was no more space left
+            (see :attr:`write_space`).
+
+        See Also
+        --------
+        :attr:`write_space`, :attr:`write_buffers`
 
         """
         try:
@@ -2002,10 +2026,10 @@ class RingBuffer(object):
     def read_advance(self, size):
         """Advance the read pointer.
 
-        After data has been read from the ringbuffer using the python buffer
-        objects returned by :attr:`read_buffers` or :meth:`peek`, use this
-        method to advance the buffer pointers, making that space available for
-        future write operations.
+        After data has been read from the ringbuffer using
+        :attr:`read_buffers` or :meth:`peek`, use this method to advance
+        the buffer pointers, making that space available for future
+        write operations.
 
         Parameters
         ----------
@@ -2018,10 +2042,9 @@ class RingBuffer(object):
     def write_advance(self, size):
         """Advance the write pointer.
 
-        After data has been written the ringbuffer using the python buffer
-        objects returned by :attr:`write_buffers`, use this method to
-        advance the buffer pointer, making the data available for future
-        read operations.
+        After data has been written to the ringbuffer using
+        :attr:`write_buffers`, use this method to advance the buffer
+        pointer, making the data available for future read operations.
 
         Parameters
         ----------
@@ -2034,10 +2057,10 @@ class RingBuffer(object):
     def mlock(self):
         """Lock a ringbuffer data block into memory.
 
-        Uses the mlock() system call.
-        This prevents the RingBuffer from being paged to swap.
+        Uses the ``mlock()`` system call.  This prevents the
+        ringbuffer's memory from being paged to the swap area.
 
-        This is not a realtime operation.
+        .. note:: This is not a realtime operation.
 
         """
         _check(_lib.jack_ringbuffer_mlock(self._ptr),
@@ -2046,13 +2069,13 @@ class RingBuffer(object):
     def reset(self, size=None):
         """Reset the read and write pointers, making an empty buffer.
 
-        This is not thread safe.
+        .. note:: This is not thread safe.
 
-        Other Parameters
-        ----------------
-        size : int
-            Optional new size for the ringbuffer,
-            that must be less than allocated size.
+        Parameters
+        ----------
+        size : int, optional
+            The new size for the ringbuffer.
+            Must be less than allocated size.
 
         """
         if size is None:
@@ -2064,17 +2087,18 @@ class RingBuffer(object):
     def read_buffers(self):
         """Contains two buffer objects that can be read directly.
 
-        Two are needed because the data to be read may be split across the
-        end of the ringbuffer. Either of them could be 0 length.
+        Two are needed because the data to be read may be split across
+        the end of the ringbuffer.  Either of them could be 0 length.
 
-        This can be used as a no-copy version of :meth:`peek` or :meth:`read`.
+        This can be used as a no-copy version of :meth:`peek` or
+        :meth:`read`.
 
-        After the operation :meth:`read_advance` can be used to advance the
-        buffer pointers, making that space available for future write
-        operations.
+        When finished with reading, :meth:`read_advance` should be used.
 
-        Note: After a read pointer moving operation these buffers are no
-        longer valid and one should use this property to get new ones.
+        .. note:: After an operation that changes the read pointer
+           (:meth:`read`, :meth:`read_advance`, :meth:`reset`), the
+           buffers are no longer valid and one should use this property
+           again to get new ones.
 
         """
         vectors = _ffi.new("jack_ringbuffer_data_t[2]")
@@ -2088,16 +2112,19 @@ class RingBuffer(object):
     def write_buffers(self):
         """Contains two buffer objects that can be written to directly.
 
-        Two are needed because the space available for writing may be split
-        across the end of the ringbuffer. Either of them could be 0 length.
+        Two are needed because the space available for writing may be
+        split across the end of the ringbuffer.  Either of them could be
+        0 length.
 
         This can be used as a no-copy version of :meth:`write`.
 
-        After the operation :meth:`write_advance` can be used to advance the
-        buffer pointer, making the data available for future read operations.
+        When finished with writing, :meth:`write_advance` should be
+        used.
 
-        Note: After a write pointer moving operation these buffers are no
-        longer valid and one should use this property to get new ones.
+        .. note:: After an operation that changes the write pointer
+           (:meth:`write`, :meth:`write_advance`, :meth:`reset`), the
+           buffers are no longer valid and one should use this property
+           again to get new ones.
 
         """
         vectors = _ffi.new("jack_ringbuffer_data_t[2]")
@@ -2119,7 +2146,13 @@ class RingBuffer(object):
 
     @property
     def size(self):
-        """The number of bytes in total used by the buffer."""
+        """The number of bytes in total used by the buffer.
+
+        See Also
+        --------
+        :attr:`read_space`, :attr:`write_space`
+
+        """
         return self._ptr.size
 
 
