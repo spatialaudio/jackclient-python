@@ -1877,7 +1877,28 @@ class Ports(object):
             self._portlist[0].unregister()
 
 
-class Status(object):
+def _make_statusbase():
+    """Create base class for Status."""
+    import numbers
+
+    def redirect(name):
+
+        def redirected(self, *args):
+            return getattr(self._code, name)(*args)
+
+        return redirected
+
+    names = set(['__gt__', '__ge__'])
+    names.update(numbers.Integral.__abstractmethods__)
+    methods = dict((name, redirect(name)) for name in names)
+    methods.update({'__eq__': lambda self, other: int(self) == other})
+    return type("_StatusBase", (), methods)
+
+_StatusBase = _make_statusbase()
+del _make_statusbase
+
+
+class Status(_StatusBase):
 
     """Representation of the JACK status bits."""
 
@@ -1889,7 +1910,7 @@ class Status(object):
                           if not name.startswith('_') and getattr(self, name))
         if not flags:
             flags = "no flags set"
-        return "<jack.Status 0x{0:x}: {1}>".format(self._code, flags)
+        return "<jack.Status 0x{0:X}: {1}>".format(int(self), flags)
 
     @property
     def failure(self):
@@ -1972,7 +1993,7 @@ class Status(object):
 
     def _hasflag(self, flag):
         """Helper function for Status properties."""
-        return bool(self._code & flag)
+        return bool(self & flag)
 
 
 class JackError(Exception):
