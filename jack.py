@@ -1940,6 +1940,85 @@ class RingBuffer(object):
             raise JackError("Could not create RingBuffer")
         self._ptr = _ffi.gc(ptr, _lib.jack_ringbuffer_free)
 
+    @property
+    def write_space(self):
+        """The number of bytes available for writing."""
+        return _lib.jack_ringbuffer_write_space(self._ptr)
+
+    def write(self, data):
+        """Write data into the ringbuffer.
+
+        Parameters
+        ----------
+        data : buffer or bytes or iterable of int
+            Bytes to be written to the ringbuffer.
+
+        Returns
+        -------
+        int
+            The number of bytes written, which could be less than the
+            length of `data` if there was no more space left
+            (see :attr:`write_space`).
+
+        See Also
+        --------
+        :attr:`write_space`, :attr:`write_buffers`
+
+        """
+        try:
+            data = _ffi.from_buffer(data)
+        except AttributeError:
+            pass  # from_buffer() not supported
+        except TypeError:
+            pass  # input is not a buffer
+        return _lib.jack_ringbuffer_write(self._ptr, data, len(data))
+
+    @property
+    def write_buffers(self):
+        """Contains two buffer objects that can be written to directly.
+
+        Two are needed because the space available for writing may be
+        split across the end of the ringbuffer.  Either of them could be
+        0 length.
+
+        This can be used as a no-copy version of :meth:`write`.
+
+        When finished with writing, :meth:`write_advance` should be
+        used.
+
+        .. note:: After an operation that changes the write pointer
+           (:meth:`write`, :meth:`write_advance`, :meth:`reset`), the
+           buffers are no longer valid and one should use this property
+           again to get new ones.
+
+        """
+        vectors = _ffi.new("jack_ringbuffer_data_t[2]")
+        _lib.jack_ringbuffer_get_write_vector(self._ptr, vectors)
+        return (
+            _ffi.buffer(vectors[0].buf, vectors[0].len),
+            _ffi.buffer(vectors[1].buf, vectors[1].len)
+        )
+
+    def write_advance(self, size):
+        """Advance the write pointer.
+
+        After data has been written to the ringbuffer using
+        :attr:`write_buffers`, use this method to advance the buffer
+        pointer, making the data available for future read operations.
+
+        Parameters
+        ----------
+        size : int
+            The number of bytes to advance.
+
+        """
+        _lib.jack_ringbuffer_write_advance(self._ptr, size)
+
+    @property
+    def read_space(self):
+        """The number of bytes available for reading."""
+        return _lib.jack_ringbuffer_read_space(self._ptr)
+
     def read(self, size):
         """Read data from the ringbuffer.
 
@@ -1995,33 +2074,30 @@ class RingBuffer(object):
         size = _lib.jack_ringbuffer_peek(self._ptr, data, size)
         return _ffi.buffer(data, size)
 
-    def write(self, data):
-        """Write data into the ringbuffer.
+    @property
+    def read_buffers(self):
+        """Contains two buffer objects that can be read directly.
 
-        Parameters
-        ----------
-        data : buffer or bytes or iterable of int
-            Bytes to be written to the ringbuffer.
+        Two are needed because the data to be read may be split across
+        the end of the ringbuffer.  Either of them could be 0 length.
 
-        Returns
-        -------
-        int
-            The number of bytes written, which could be less than the
-            length of `data` if there was no more space left
-            (see :attr:`write_space`).
+        This can be used as a no-copy version of :meth:`peek` or
+        :meth:`read`.
 
-        See Also
-        --------
-        :attr:`write_space`, :attr:`write_buffers`
+        When finished with reading, :meth:`read_advance` should be used.
+
+        .. note:: After an operation that changes the read pointer
+           (:meth:`read`, :meth:`read_advance`, :meth:`reset`), the
+           buffers are no longer valid and one should use this property
+           again to get new ones.
 
         """
-        try:
-            data = _ffi.from_buffer(data)
-        except AttributeError:
-            pass  # from_buffer() not supported
-        except TypeError:
-            pass  # input is not a buffer
-        return _lib.jack_ringbuffer_write(self._ptr, data, len(data))
+        vectors = _ffi.new("jack_ringbuffer_data_t[2]")
+        _lib.jack_ringbuffer_get_read_vector(self._ptr, vectors)
+        return (
+            _ffi.buffer(vectors[0].buf, vectors[0].len),
+            _ffi.buffer(vectors[1].buf, vectors[1].len)
+        )
 
     def read_advance(self, size):
         """Advance the read pointer.
@@ -2038,21 +2114,6 @@ class RingBuffer(object):
 
         """
         _lib.jack_ringbuffer_read_advance(self._ptr, size)
-
-    def write_advance(self, size):
-        """Advance the write pointer.
-
-        After data has been written to the ringbuffer using
-        :attr:`write_buffers`, use this method to advance the buffer
-        pointer, making the data available for future read operations.
-
-        Parameters
-        ----------
-        size : int
-            The number of bytes to advance.
-
-        """
-        _lib.jack_ringbuffer_write_advance(self._ptr, size)
 
     def mlock(self):
         """Lock a ringbuffer data block into memory.
@@ -2082,67 +2143,6 @@ class RingBuffer(object):
             _lib.jack_ringbuffer_reset(self._ptr)
         else:
             _lib.jack_ringbuffer_reset_size(self._ptr, size)
-
-    @property
-    def read_buffers(self):
-        """Contains two buffer objects that can be read directly.
-
-        Two are needed because the data to be read may be split across
-        the end of the ringbuffer.  Either of them could be 0 length.
-
-        This can be used as a no-copy version of :meth:`peek` or
-        :meth:`read`.
-
-        When finished with reading, :meth:`read_advance` should be used.
-
-        .. note:: After an operation that changes the read pointer
-           (:meth:`read`, :meth:`read_advance`, :meth:`reset`), the
-           buffers are no longer valid and one should use this property
-           again to get new ones.
-
-        """
-        vectors = _ffi.new("jack_ringbuffer_data_t[2]")
-        _lib.jack_ringbuffer_get_read_vector(self._ptr, vectors)
-        return (
-            _ffi.buffer(vectors[0].buf, vectors[0].len),
-            _ffi.buffer(vectors[1].buf, vectors[1].len)
-        )
-
-    @property
-    def write_buffers(self):
-        """Contains two buffer objects that can be written to directly.
-
-        Two are needed because the space available for writing may be
-        split across the end of the ringbuffer.  Either of them could be
-        0 length.
-
-        This can be used as a no-copy version of :meth:`write`.
-
-        When finished with writing, :meth:`write_advance` should be
-        used.
-
-        .. note:: After an operation that changes the write pointer
-           (:meth:`write`, :meth:`write_advance`, :meth:`reset`), the
-           buffers are no longer valid and one should use this property
-           again to get new ones.
-
-        """
-        vectors = _ffi.new("jack_ringbuffer_data_t[2]")
-        _lib.jack_ringbuffer_get_write_vector(self._ptr, vectors)
-        return (
-            _ffi.buffer(vectors[0].buf, vectors[0].len),
-            _ffi.buffer(vectors[1].buf, vectors[1].len)
-        )
-
-    @property
-    def read_space(self):
-        """The number of bytes available for reading."""
-        return _lib.jack_ringbuffer_read_space(self._ptr)
-
-    @property
-    def write_space(self):
-        """The number of bytes available for writing."""
-        return _lib.jack_ringbuffer_write_space(self._ptr)
 
     @property
     def size(self):
