@@ -1548,7 +1548,7 @@ class OwnPort(Port):
         return bool(_lib.jack_port_connected_to(self._ptr, port.encode()))
 
     def connect(self, port):
-        """Connect to given port:
+        """Connect to given port.
 
         Parameters
         ----------
