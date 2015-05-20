@@ -2104,8 +2104,8 @@ class RingBuffer(object):
         vectors = _ffi.new("jack_ringbuffer_data_t[2]")
         _lib.jack_ringbuffer_get_read_vector(self._ptr, vectors)
         return (
-            _ffi.buffer(vectors[0].buf,vectors[0].len),
-            _ffi.buffer(vectors[1].buf,vectors[1].len)
+            _ffi.buffer(vectors[0].buf, vectors[0].len),
+            _ffi.buffer(vectors[1].buf, vectors[1].len)
         )
 
     @property
@@ -2130,8 +2130,8 @@ class RingBuffer(object):
         vectors = _ffi.new("jack_ringbuffer_data_t[2]")
         _lib.jack_ringbuffer_get_write_vector(self._ptr, vectors)
         return (
-            _ffi.buffer(vectors[0].buf,vectors[0].len),
-            _ffi.buffer(vectors[1].buf,vectors[1].len)
+            _ffi.buffer(vectors[0].buf, vectors[0].len),
+            _ffi.buffer(vectors[1].buf, vectors[1].len)
         )
 
     @property
