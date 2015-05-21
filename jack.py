@@ -27,6 +27,8 @@ __version__ = "0.2.0"
 
 import errno as _errno
 from cffi import FFI as _FFI
+import sys
+import platform
 
 _ffi = _FFI()
 _ffi.cdef("""
@@ -294,7 +296,19 @@ struct _jack_position {
 };
 """, packed=True)
 
-_lib = _ffi.dlopen("jack")
+# load library based on OS
+os_name = platform.system()
+is_64bits = sys.maxsize > 2**32
+if os_name == 'Linux':
+    _lib = _ffi.dlopen("jack")
+elif os_name == 'Windows':
+    if is_64bits:
+        _lib = _ffi.dlopen("libjack64")
+    else:
+        _lib = _ffi.dlopen("libjack")
+else:
+    # OSX not implemented, need tester
+    raise Exception("OSX not implemented")
 
 _AUDIO = b"32 bit float mono audio"
 _MIDI = b"8 bit raw midi"
