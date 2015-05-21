@@ -105,6 +105,7 @@ typedef enum {
 } jack_position_bits_t;
 /* _jack_position: see below in "packed" section */
 typedef struct _jack_position jack_position_t;
+typedef void (*JackTimebaseCallback)(jack_transport_state_t state, jack_nframes_t nframes, jack_position_t *pos, int new_pos, void *arg);
 /* deprecated: jack_transport_bits_t */
 /* deprecated: jack_transport_info_t */
 
@@ -236,11 +237,11 @@ size_t jack_ringbuffer_write_space(const jack_ringbuffer_t* rb);
 /* TODO: jack_release_timebase */
 /* TODO: jack_set_sync_callback */
 /* TODO: jack_set_sync_timeout */
-/* TODO: jack_set_timebase_callback */
+int jack_set_timebase_callback(jack_client_t* client, int conditional, JackTimebaseCallback timebase_callback, void* arg);
 int  jack_transport_locate(jack_client_t* client, jack_nframes_t frame);
 jack_transport_state_t jack_transport_query(const jack_client_t* client, jack_position_t* pos);
 jack_nframes_t jack_get_current_transport_frame(const jack_client_t* client);
-int  jack_transport_reposition(jack_client_t* client, const jack_position_t* pos);
+/* TODO: jack_transport_reposition */
 void jack_transport_start(jack_client_t* client);
 void jack_transport_stop(jack_client_t* client);
 /* deprecated: jack_get_transport_info */
