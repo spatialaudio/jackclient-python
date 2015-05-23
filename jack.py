@@ -636,6 +636,10 @@ class Client(object):
         destination : str or Port
             The other end of the connection. Must be an input port.
 
+        See Also
+        --------
+        OwnPort.connect
+
         """
         if isinstance(source, Port):
             source = source.name
@@ -753,14 +757,14 @@ class Client(object):
         the rest of the application knows that the JACK client thread
         has shut down.
 
-        .. note:: clients do not need to call this.  It exists only to
+        .. note:: Clients do not need to call this.  It exists only to
            help more complex clients understand what is going on.  It
            should be called before :meth:`activate`.
 
-        .. note:: application should typically signal another thread to
-           correctly finish cleanup, that is by calling :meth:`close`
-           (since :meth:`close` cannot be called directly in the context
-           of the thread that calls the shutdown callback).
+        .. note:: The `callback` should typically signal another thread
+           to correctly finish cleanup by calling :meth:`close` (since
+           :meth:`close` cannot be called directly in the context of the
+           thread that calls the shutdown callback).
 
         Parameters
         ----------
@@ -772,10 +776,10 @@ class Client(object):
 
             The argument `status` is of type :class:`jack.Status`.
 
-            Note that after server shutdown, `self`
-            is *not* deallocated by libjack, the application is
-            responsible to properly use :meth:`close` to release client
-            ressources.
+            .. note:: After server shutdown, the client is *not*
+               deallocated by JACK, the user (that's you!) is
+               responsible to properly use :meth:`close` to release
+               client ressources.
 
             .. warning:: :meth:`close` cannot be safely used inside the
                shutdown callback and has to be called outside of the
@@ -842,16 +846,19 @@ class Client(object):
         thread, the code in the supplied function does not need to be
         suitable for real-time execution.
 
-        .. note:: this function cannot be called while the client is
+        .. note:: This function cannot be called while the client is
            activated (after :meth:`activate` has been called).
 
         Parameters
         ----------
         callback : callable
-            User-supplied function that is called whenever jackd starts
+            User-supplied function that is called whenever JACK starts
             or stops freewheeling.  It must have this signature::
 
                 callback(starting:bool) -> None
+
+            The argument `starting` is ``True`` if we start to
+            freewheel, ``False`` otherwise.
 
         See Also
         --------
@@ -878,7 +885,7 @@ class Client(object):
         thread, the code in the supplied function does not need to be
         suitable for real-time execution.
 
-        .. note:: this function cannot be called while the client is
+        .. note:: This function cannot be called while the client is
            activated (after :meth:`activate` has been called).
 
         Parameters
@@ -889,15 +896,21 @@ class Client(object):
 
                 callback(blocksize:int) -> int
 
+            The argument `blocksize` is the new buffer size.
             The `callback` must return zero on success and non-zero on
             error. You can use the module constants :data:`jack.SUCCESS`
             and :data:`jack.FAILURE`, respectively.
 
-            Although this function is called in the JACK process thread,
-            the normal process cycle is suspended during its operation,
-            causing a gap in the audio flow.  So, the `callback` can
-            allocate storage, touch memory not previously referenced,
-            and perform other operations that are not realtime safe.
+            .. note:: Although this function is called in the JACK
+               process thread, the normal process cycle is suspended
+               during its operation, causing a gap in the audio flow.
+               So, the `callback` can allocate storage, touch memory not
+               previously referenced, and perform other operations that
+               are not realtime safe.
+
+        See Also
+        --------
+        :attr:`blocksize`
 
         """
         @self._callback("JackBufferSizeCallback", error=FAILURE)
@@ -918,7 +931,7 @@ class Client(object):
         thread, the code in the supplied function does not need to be
         suitable for real-time execution.
 
-        .. note:: this function cannot be called while the client is
+        .. note:: This function cannot be called while the client is
            activated (after :meth:`activate` has been called).
 
         Parameters
@@ -933,6 +946,10 @@ class Client(object):
             The `callback` must return zero on success and non-zero on
             error. You can use the module constants :data:`jack.SUCCESS`
             and :data:`jack.FAILURE`, respectively.
+
+        See Also
+        --------
+        :attr:`samplerate`
 
         """
         @self._callback("JackSampleRateCallback", error=FAILURE)
@@ -953,7 +970,7 @@ class Client(object):
         thread, the code in the supplied function does not need to be
         suitable for real-time execution.
 
-        .. note:: this function cannot be called while the client is
+        .. note:: This function cannot be called while the client is
            activated (after :meth:`activate` has been called).
 
         Parameters
@@ -987,7 +1004,7 @@ class Client(object):
         thread, the code in the supplied function does not need to be
         suitable for real-time execution.
 
-        .. note:: this function cannot be called while the client is
+        .. note:: This function cannot be called while the client is
            activated (after :meth:`activate` has been called).
 
         Parameters
@@ -1003,6 +1020,10 @@ class Client(object):
             :class:`OwnPort` or :class:`OwnMidiPort` object, the second
             argument is ``True`` if the port is being registered,
             ``False`` if the port is being unregistered.
+
+        See Also
+        --------
+        Ports.register
 
         """
         @self._callback("JackPortRegistrationCallback")
@@ -1024,7 +1045,7 @@ class Client(object):
         thread, the code in the supplied function does not need to be
         suitable for real-time execution.
 
-        .. note:: this function cannot be called while the client is
+        .. note:: This function cannot be called while the client is
            activated (after :meth:`activate` has been called).
 
         Parameters
@@ -1040,6 +1061,10 @@ class Client(object):
             objects of the ports which are connected or disconnected.
             The third argument is ``True`` if the ports were connected
             and ``False`` if the ports were disconnected.
+
+        See Also
+        --------
+        Client.connect, OwnPort.connect
 
         """
         @self._callback("JackPortConnectCallback")
@@ -1062,7 +1087,7 @@ class Client(object):
         thread, the code in the supplied function does not need to be
         suitable for real-time execution.
 
-        .. note:: this function cannot be called while the client is
+        .. note:: This function cannot be called while the client is
            activated (after :meth:`activate` has been called).
 
         Parameters
@@ -1080,6 +1105,10 @@ class Client(object):
             The `callback` must return zero on success and non-zero on
             error. You can use the module constants :data:`jack.SUCCESS`
             and :data:`jack.FAILURE`, respectively.
+
+        See Also
+        --------
+        :attr:`Port.shortname`
 
         """
         @self._callback("JackPortRenameCallback", error=FAILURE)
@@ -1102,7 +1131,7 @@ class Client(object):
         thread, the code in the supplied function does not need to be
         suitable for real-time execution.
 
-        .. note:: this function cannot be called while the client is
+        .. note:: This function cannot be called while the client is
            activated (after :meth:`activate` has been called).
 
         Parameters
@@ -1137,7 +1166,7 @@ class Client(object):
         thread, the code in the supplied function does not need to be
         suitable for real-time execution.
 
-        .. note:: this function cannot be called while the client is
+        .. note:: This function cannot be called while the client is
            activated (after :meth:`activate` has been called).
 
         Parameters
