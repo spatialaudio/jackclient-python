@@ -676,6 +676,20 @@ class Client(object):
         """Stop JACK transport."""
         _lib.jack_transport_stop(self._ptr)
 
+    @property
+    def transport_state(self):
+        """JACK transport state.
+
+        This is one of :attr:`STOPPED`, :attr:`ROLLING`,
+        :attr:`STARTING`, :attr:`NETSTARTING`.
+
+        See Also
+        --------
+        transport_query
+
+        """
+        return TransportState(_lib.jack_transport_query(self._ptr, _ffi.NULL))
+
     def transport_locate(self, frame):
         """Reposition the JACK transport to a new frame number.
 
@@ -704,6 +718,10 @@ class Client(object):
         position : dict
             A dictionary containing only the valid fields of the
             structure returned by :meth:`transport_query_struct`.
+
+        See Also
+        --------
+        :attr:`transport_state`
 
         """
         state, pos = self.transport_query_struct()
