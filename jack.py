@@ -75,7 +75,7 @@ typedef void (*JackClientRegistrationCallback)(const char* name, int /* register
 typedef void (*JackPortConnectCallback)(jack_port_id_t a, jack_port_id_t b, int connect, void* arg);
 typedef int (*JackPortRenameCallback)(jack_port_id_t port, const char* old_name, const char* new_name, void* arg);
 typedef void (*JackFreewheelCallback)(int starting, void* arg);
-/* not implemented: JackShutdownCallback */
+/* not implemented: JackShutdownCallback (only JackInfoShutdownCallback is used) */
 typedef void (*JackInfoShutdownCallback)(jack_status_t code, const char* reason, void* arg);
 /* JACK_DEFAULT_AUDIO_TYPE: see _AUDIO */
 /* JACK_DEFAULT_MIDI_TYPE: see _MIDI */
@@ -125,7 +125,7 @@ int jack_deactivate(jack_client_t* client);
 int jack_get_client_pid(const char* name);
 /* not implemented: jack_client_thread_id */
 int jack_is_realtime(jack_client_t* client);
-/* not implemented (and deprecated): jack_thread_wait */
+/* deprecated: jack_thread_wait */
 /* not implemented: jack_cycle_wait */
 /* not implemented: jack_cycle_signal */
 /* not implemented: jack_set_process_thread */
@@ -252,8 +252,7 @@ float jack_get_xrun_delayed_usecs(jack_client_t* client);
 /* midiport.h */
 
 typedef unsigned char jack_midi_data_t;
-typedef struct _jack_midi_event
-{
+typedef struct _jack_midi_event {
     jack_nframes_t time;
     size_t size;
     jack_midi_data_t* buffer;
@@ -274,8 +273,7 @@ uint32_t jack_midi_get_lost_event_count(void* port_buffer);
 
 # Packed structure
 _ffi.cdef("""
-struct _jack_position
-{
+struct _jack_position {
     jack_unique_t unique_1;
     jack_time_t usecs;
     jack_nframes_t frame_rate;
