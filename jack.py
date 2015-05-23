@@ -691,6 +691,42 @@ class Client(object):
     def transport_query(self):
         """Query the current transport state and position.
 
+        This is a convenience function that does the same as
+        :meth:`transport_query_struct` but it only returns the valid
+        fields in an easy-to-use ``dict``.
+
+        Returns
+        -------
+        state : TransportState
+            The transport state can take following values:
+            :attr:`STOPPED`, :attr:`ROLLING`, :attr:`STARTING` and
+            :attr:`NETSTARTING`.
+        position : dict
+            A dictionary containing only the valid fields of the
+            structure returned by :meth:`transport_query_struct`.
+
+        """
+        state, pos = self.transport_query_struct()
+        assert pos.unique_1 == pos.unique_2
+
+        keys = ['usecs', 'frame_rate', 'frame']
+        if pos.valid & _lib.JackPositionBBT:
+            keys += ['bar', 'beat', 'tick', 'bar_start_tick', 'beats_per_bar',
+                     'beat_type', 'ticks_per_beat', 'beats_per_minute']
+        if pos.valid & _lib.JackPositionTimecode:
+            keys += ['frame_time', 'next_time']
+        if pos.valid & _lib.JackBBTFrameOffset:
+            keys += ['bbt_offset']
+        if pos.valid & _lib.JackAudioVideoRatio:
+            keys += ['audio_frames_per_video_frame']
+        if pos.valid & _lib.JackVideoFrameOffset:
+            keys += ['video_offset']
+
+        return TransportState(state), dict((k, getattr(pos, k)) for k in keys)
+
+    def transport_query_struct(self):
+        """Query the current transport state and position.
+
         This function is realtime-safe, and can be called from any
         thread.  If called from the process thread, the returned
         position corresponds to the first frame of the current cycle and
@@ -707,6 +743,10 @@ class Client(object):
             fields.
 
             __ http://jackaudio.org/files/docs/html/structjack__position__t.html
+
+        See Also
+        --------
+        transport_query
 
         """
         state = _lib.jack_transport_query(self._ptr, self._position)
@@ -2267,6 +2307,27 @@ class Status(_StatusBase):
     def _hasflag(self, flag):
         """Helper function for Status properties."""
         return bool(self & flag)
+
+
+class TransportState(_StatusBase):
+
+    """Representation of the JACK transport state.
+
+    See Also
+    --------
+    :attr:`Client.transport_state`, :meth:`Client.transport_query`
+
+    """
+
+    __slots__ = ()
+
+    def __repr__(self):
+        return "jack." + {
+            _lib.JackTransportStopped: 'STOPPED',
+            _lib.JackTransportRolling: 'ROLLING',
+            _lib.JackTransportStarting: 'STARTING',
+            _lib.JackTransportNetStarting: 'NETSTARTING',
+        }[int(self)]
 
 
 class JackError(Exception):
