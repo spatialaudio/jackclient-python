@@ -10,18 +10,17 @@ information whenever they are called.
 from __future__ import print_function  # only needed for Python 2.x
 import jack
 
+print("setting error/info functions")
 
+
+@jack.set_error_function
 def error(msg):
     print("Error:", msg)
 
 
+@jack.set_info_function
 def info(msg):
     print("Info:", msg)
-
-
-print("setting error/info functions")
-jack.set_error_function(error)
-jack.set_info_function(info)
 
 
 print("starting chatty client")
@@ -39,71 +38,62 @@ if client.status.name_not_unique:
 print("registering callbacks")
 
 
+@client.set_shutdown_callback
 def shutdown(status, reason):
     print("JACK shutdown!")
     print("status:", status)
     print("reason:", reason)
 
-client.set_shutdown_callback(shutdown)
 
-
+@client.set_freewheel_callback
 def freewheel(starting):
     print(["stopping", "starting"][starting], "freewheel mode")
 
-client.set_freewheel_callback(freewheel)
 
-
+@client.set_blocksize_callback
 def blocksize(blocksize):
     print("setting blocksize to", blocksize)
     return jack.SUCCESS
 
-client.set_blocksize_callback(blocksize)
 
-
+@client.set_samplerate_callback
 def samplerate(samplerate):
     print("setting samplerate to", samplerate)
     return jack.SUCCESS
 
-client.set_samplerate_callback(samplerate)
 
-
+@client.set_client_registration_callback
 def client_registration(name, register):
     print("client", repr(name), ["unregistered", "registered"][register])
 
-client.set_client_registration_callback(client_registration)
 
-
+@client.set_port_registration_callback
 def port_registration(port, register):
     print(repr(port), ["unregistered", "registered"][register])
 
-client.set_port_registration_callback(port_registration)
 
-
+@client.set_port_connect_callback
 def port_connect(a, b, connect):
     print(["disconnected", "connected"][connect], a, "and", b)
 
-client.set_port_connect_callback(port_connect)
 
-
+@client.set_port_rename_callback
 def port_rename(port, old, new):
     print("renamed", port, "from", repr(old), "to", repr(new))
     return jack.SUCCESS
 
-client.set_port_rename_callback(port_rename)
 
-
+@client.set_graph_order_callback
 def graph_order():
     print("graph order changed")
     return jack.SUCCESS
 
-client.set_graph_order_callback(graph_order)
 
-
+@client.set_xrun_callback
 def xrun():
     print("xrun; delay", client.xrun_delayed_usecs, "microseconds")
     return jack.SUCCESS
 
-client.set_xrun_callback(xrun)
 
 print("activating JACK")
 with client:

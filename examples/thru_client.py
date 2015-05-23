@@ -41,6 +41,7 @@ if client.status.name_not_unique:
 event = threading.Event()
 
 
+@client.set_process_callback
 def process(frames):
     assert len(client.inports) == len(client.outports)
     assert frames == client.blocksize
@@ -48,16 +49,14 @@ def process(frames):
         o.get_buffer()[:] = i.get_buffer()
     return jack.CALL_AGAIN
 
-client.set_process_callback(process)
 
-
+@client.set_shutdown_callback
 def shutdown(status, reason):
     print("JACK shutdown!")
     print("status:", status)
     print("reason:", reason)
     event.set()
 
-client.set_shutdown_callback(shutdown)
 
 # create two port pairs
 for number in 1, 2:

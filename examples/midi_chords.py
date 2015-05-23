@@ -20,7 +20,8 @@ inport = client.midi_inports.register("input")
 outport = client.midi_outports.register("output")
 
 
-def callback(frames):
+@client.set_process_callback
+def process(frames):
     outport.clear_buffer()
     for offset, indata in inport.incoming_midi_events():
         # Note: This may raise an exception:
@@ -32,8 +33,6 @@ def callback(frames):
                     # Note: This may raise an exception:
                     outport.write_midi_event(offset, (status, pitch + i, vel))
     return jack.CALL_AGAIN
-
-client.set_process_callback(callback)
 
 with client:
     print("#" * 80)

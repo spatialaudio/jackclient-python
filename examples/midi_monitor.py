@@ -9,14 +9,13 @@ client = jack.Client("MIDI-Monitor")
 port = client.midi_inports.register("input")
 
 
-def callback(frames):
+@client.set_process_callback
+def process(frames):
     for offset, data in port.incoming_midi_events():
         # TODO: use ringbuffer
         print("{0}: 0x{1}".format(client.last_frame_time + offset,
                                   binascii.hexlify(data).decode()))
     return jack.CALL_AGAIN
-
-client.set_process_callback(callback)
 
 with client:
     print("#" * 80)
