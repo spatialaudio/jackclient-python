@@ -2160,9 +2160,13 @@ def _make_statusbase():
 
     names = set(['__gt__', '__ge__'])
     names.update(numbers.Integral.__abstractmethods__)
-    methods = dict((name, redirect(name)) for name in names)
-    methods.update({'__eq__': lambda self, other: int(self) == other})
-    return type("_StatusBase", (), methods)
+    namespace = dict((name, redirect(name)) for name in names)
+    namespace.update({
+        '__slots__': '_code',
+        '__init__': lambda self, code: setattr(self, '_code', code),
+        '__eq__': lambda self, other: int(self) == other,
+    })
+    return type("_StatusBase", (), namespace)
 
 _StatusBase = _make_statusbase()
 del _make_statusbase
@@ -2172,8 +2176,7 @@ class Status(_StatusBase):
 
     """Representation of the JACK status bits."""
 
-    def __init__(self, statuscode):
-        self._code = statuscode
+    __slots__ = ()
 
     def __repr__(self):
         flags = ", ".join(name for name in dir(self)
