@@ -41,7 +41,7 @@ if client.status.name_not_unique:
 event = threading.Event()
 
 
-def process(frames, userdata):
+def process(frames):
     assert len(client.inports) == len(client.outports)
     assert frames == client.blocksize
     for i, o in zip(client.inports, client.outports):
@@ -51,7 +51,7 @@ def process(frames, userdata):
 client.set_process_callback(process)
 
 
-def shutdown(status, reason, userdata):
+def shutdown(status, reason):
     print("JACK shutdown!")
     print("status:", status)
     print("reason:", reason)

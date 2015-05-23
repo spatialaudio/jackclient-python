@@ -741,7 +741,7 @@ class Client(object):
         _check(_lib.jack_set_freewheel(self._ptr, onoff),
                "Error setting freewheel mode")
 
-    def set_shutdown_callback(self, callback, userdata=None):
+    def set_shutdown_callback(self, callback):
         """Register shutdown callback.
 
         Register a function (and optional argument) to be called if and
@@ -768,7 +768,7 @@ class Client(object):
             User-supplied function that is called whenever the JACK
             daemon is shutdown.  It must have this signature::
 
-                callback(status:Status, reason:str, userdata) -> None
+                callback(status:Status, reason:str) -> None
 
             The argument `status` is of type :class:`jack.Status`.
 
@@ -780,23 +780,19 @@ class Client(object):
             .. warning:: :meth:`close` cannot be safely used inside the
                shutdown callback and has to be called outside of the
                callback context.
-        userdata : anything
-            This will be passed as third argument when `callback` is
-            called.
 
         """
         @self._callback("JackInfoShutdownCallback")
         def callback_wrapper(code, reason, _):
-            return callback(Status(code), _ffi.string(reason).decode(),
-                            userdata)
+            return callback(Status(code), _ffi.string(reason).decode())
 
         _lib.jack_on_info_shutdown(self._ptr, callback_wrapper, _ffi.NULL)
 
-    def set_process_callback(self, callback, userdata=None):
+    def set_process_callback(self, callback):
         """Register process callback.
 
         Tell the JACK server to call `callback` whenever there is work
-        be done, passing `userdata` as the second argument.
+        be done.
 
         The code in the supplied function must be suitable for real-time
         execution.  That means that it cannot call functions that might
@@ -813,7 +809,7 @@ class Client(object):
             User-supplied function that is called by the engine anytime
             there is work to be done.  It must have this signature::
 
-                callback(frames:int, userdata) -> int
+                callback(frames:int) -> int
 
             The argument `frames` specifies the number of frames that
             have to be processed in the current audio block. It will be
@@ -824,26 +820,23 @@ class Client(object):
             on error (if `callback` shall not be called again).
             You can use the module constants :data:`CALL_AGAIN` and
             :data:`STOP_CALLING`, respectively.
-        userdata : anything
-            This will be passed as second argument whenever `callback`
-            is called.
 
         """
         @self._callback("JackProcessCallback", error=STOP_CALLING)
         def callback_wrapper(frames, _):
-            return callback(frames, userdata)
+            return callback(frames)
 
         _check(_lib.jack_set_process_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting process callback")
 
-    def set_freewheel_callback(self, callback, userdata=None):
+    def set_freewheel_callback(self, callback):
         """Register freewheel callback.
 
         Tell the JACK server to call `callback` whenever we enter or
-        leave "freewheel" mode, passing `userdata` as the second
-        argument. The first argument to the callback will be ``True`` if
-        JACK is entering freewheel mode, and ``False`` otherwise.
+        leave "freewheel" mode.
+        The argument to the callback will be ``True`` if JACK is
+        entering freewheel mode, and ``False`` otherwise.
 
         All "notification events" are received in a separated non RT
         thread, the code in the supplied function does not need to be
@@ -858,11 +851,7 @@ class Client(object):
             User-supplied function that is called whenever jackd starts
             or stops freewheeling.  It must have this signature::
 
-                callback(starting:bool, userdata) -> None
-
-        userdata : anything
-            This will be passed as second argument whenever `callback`
-            is called.
+                callback(starting:bool) -> None
 
         See Also
         --------
@@ -871,13 +860,13 @@ class Client(object):
         """
         @self._callback("JackFreewheelCallback")
         def callback_wrapper(starting, _):
-            return callback(bool(starting), userdata)
+            return callback(bool(starting))
 
         _check(_lib.jack_set_freewheel_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting freewheel callback")
 
-    def set_blocksize_callback(self, callback, userdata=None):
+    def set_blocksize_callback(self, callback):
         """Register blocksize callback.
 
         Tell JACK to call `callback` whenever the size of the the buffer
@@ -898,7 +887,7 @@ class Client(object):
             User-supplied function that is invoked whenever the JACK
             engine buffer size changes.  It must have this signature::
 
-                callback(blocksize:int, userdata) -> int
+                callback(blocksize:int) -> int
 
             The `callback` must return zero on success and non-zero on
             error. You can use the module constants :data:`jack.SUCCESS`
@@ -909,20 +898,17 @@ class Client(object):
             causing a gap in the audio flow.  So, the `callback` can
             allocate storage, touch memory not previously referenced,
             and perform other operations that are not realtime safe.
-        userdata : anything
-            This will be passed as second argument whenever `callback`
-            is called.
 
         """
         @self._callback("JackBufferSizeCallback", error=FAILURE)
         def callback_wrapper(blocksize, _):
-            return callback(blocksize, userdata)
+            return callback(blocksize)
 
         _check(_lib.jack_set_buffer_size_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting blocksize callback")
 
-    def set_samplerate_callback(self, callback, userdata=None):
+    def set_samplerate_callback(self, callback):
         """Register samplerate callback.
 
         Tell the JACK server to call `callback` whenever the system
@@ -941,30 +927,27 @@ class Client(object):
             User-supplied function that is called when the engine sample
             rate changes.  It must have this signature::
 
-                callback(samplerate:int, userdata) -> int
+                callback(samplerate:int) -> int
 
             The argument `samplerate` is the new engine sample rate.
             The `callback` must return zero on success and non-zero on
             error. You can use the module constants :data:`jack.SUCCESS`
             and :data:`jack.FAILURE`, respectively.
-        userdata : anything
-            This will be passed as second argument whenever `callback`
-            is called.
 
         """
         @self._callback("JackSampleRateCallback", error=FAILURE)
         def callback_wrapper(samplerate, _):
-            return callback(samplerate, userdata)
+            return callback(samplerate)
 
         _check(_lib.jack_set_sample_rate_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting samplerate callback")
 
-    def set_client_registration_callback(self, callback, userdata=None):
+    def set_client_registration_callback(self, callback):
         """Register client registration callback.
 
         Tell the JACK server to call `callback` whenever a client is
-        registered or unregistered, passing `userdata` as a parameter.
+        registered or unregistered.
 
         All "notification events" are received in a separated non RT
         thread, the code in the supplied function does not need to be
@@ -979,30 +962,26 @@ class Client(object):
             User-supplied function that is called whenever a client is
             registered or unregistered.  It must have this signature::
 
-                callback(name:str, register:bool, userdata) -> None
+                callback(name:str, register:bool) -> None
 
             The first argument contains the client name, the second
             argument is ``True`` if the client is being registered and
             ``False`` if the client is being unregistered.
-        userdata : anything
-            This will be passed as third argument whenever `callback`
-            is called.
 
         """
         @self._callback("JackClientRegistrationCallback")
         def callback_wrapper(name, register, _):
-            return callback(_ffi.string(name).decode(), bool(register),
-                            userdata)
+            return callback(_ffi.string(name).decode(), bool(register))
 
         _check(_lib.jack_set_client_registration_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting client registration callback")
 
-    def set_port_registration_callback(self, callback, userdata=None):
+    def set_port_registration_callback(self, callback):
         """Register port registration callback.
 
         Tell the JACK server to call `callback` whenever a port is
-        registered or unregistered, passing `userdata` as a parameter.
+        registered or unregistered.
 
         All "notification events" are received in a separated non RT
         thread, the code in the supplied function does not need to be
@@ -1018,31 +997,28 @@ class Client(object):
             port is registered or unregistered.
             It must have this signature::
 
-                callback(port:Port, register:bool, userdata) -> None
+                callback(port:Port, register:bool) -> None
 
             The first argument is a :class:`Port`, :class:`MidiPort`,
             :class:`OwnPort` or :class:`OwnMidiPort` object, the second
             argument is ``True`` if the port is being registered,
             ``False`` if the port is being unregistered.
-        userdata : anything
-            This will be passed as third argument whenever `callback` is
-            called.
 
         """
         @self._callback("JackPortRegistrationCallback")
         def callback_wrapper(port, register, _):
             port = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, port))
-            return callback(port, bool(register), userdata)
+            return callback(port, bool(register))
 
         _check(_lib.jack_set_port_registration_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting port registration callback")
 
-    def set_port_connect_callback(self, callback, userdata=None):
+    def set_port_connect_callback(self, callback):
         """Register port connect callback.
 
         Tell the JACK server to call `callback` whenever a port is
-        connected or disconnected, passing `userdata` as a parameter.
+        connected or disconnected.
 
         All "notification events" are received in a separated non RT
         thread, the code in the supplied function does not need to be
@@ -1057,33 +1033,30 @@ class Client(object):
             User-supplied function that is called whenever a port is
             connected or disconnected.  It must have this signature::
 
-                callback(a:Port, b:Port, connect:bool, userdata) -> None
+                callback(a:Port, b:Port, connect:bool) -> None
 
             The first and second arguments contain :class:`Port`,
             :class:`MidiPort`, :class:`OwnPort` or :class:`OwnMidiPort`
             objects of the ports which are connected or disconnected.
             The third argument is ``True`` if the ports were connected
             and ``False`` if the ports were disconnected.
-        userdata : anything
-            This will be passed as fourth argument whenever `callback`
-            is called.
 
         """
         @self._callback("JackPortConnectCallback")
         def callback_wrapper(a, b, connect, _):
             a = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, a))
             b = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, b))
-            return callback(a, b, bool(connect), userdata)
+            return callback(a, b, bool(connect))
 
         _check(_lib.jack_set_port_connect_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting port connect callback")
 
-    def set_port_rename_callback(self, callback, userdata=None):
+    def set_port_rename_callback(self, callback):
         """Register port rename callback.
 
         Tell the JACK server to call `callback` whenever a port is
-        renamed, passing `userdata` as a parameter.
+        renamed.
 
         All "notification events" are received in a separated non RT
         thread, the code in the supplied function does not need to be
@@ -1098,7 +1071,7 @@ class Client(object):
             User-supplied function that is called whenever the port name
             has been changed.  It must have this signature::
 
-                callback(port:Port, old:str, new:str, userdata) -> int
+                callback(port:Port, old:str, new:str) -> int
 
             The first argument is the port that has been renamed (a
             :class:`Port`, :class:`MidiPort`, :class:`OwnPort` or
@@ -1107,26 +1080,23 @@ class Client(object):
             The `callback` must return zero on success and non-zero on
             error. You can use the module constants :data:`jack.SUCCESS`
             and :data:`jack.FAILURE`, respectively.
-        userdata : anything
-            This will be passed as fourth argument whenever `callback`
-            is called.
 
         """
         @self._callback("JackPortRenameCallback", error=FAILURE)
         def callback_wrapper(port, old_name, new_name, _):
             port = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, port))
             return callback(port, _ffi.string(old_name).decode(),
-                            _ffi.string(new_name).decode(), userdata)
+                            _ffi.string(new_name).decode())
 
         _check(_lib.jack_set_port_rename_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting port rename callback")
 
-    def set_graph_order_callback(self, callback, userdata=None):
+    def set_graph_order_callback(self, callback):
         """Register graph order callback.
 
         Tell the JACK server to call `callback` whenever the processing
-        graph is reordered, passing `userdata` as a parameter.
+        graph is reordered.
 
         All "notification events" are received in a separated non RT
         thread, the code in the supplied function does not need to be
@@ -1142,29 +1112,26 @@ class Client(object):
             processing graph is reordered.
             It must have this signature::
 
-                callback(userdata) -> int
+                callback() -> int
 
             The `callback` must return zero on success and non-zero on
             error. You can use the module constants :data:`jack.SUCCESS`
             and :data:`jack.FAILURE`, respectively.
-        userdata : anything
-            This will be passed as argument whenever `callback` is
-            called.
 
         """
         @self._callback("JackGraphOrderCallback", error=FAILURE)
         def callback_wrapper(_):
-            return callback(userdata)
+            return callback()
 
         _check(_lib.jack_set_graph_order_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting graph order callback")
 
-    def set_xrun_callback(self, callback, userdata=None):
+    def set_xrun_callback(self, callback):
         """Register xrun callback.
 
         Tell the JACK server to call `callback` whenever there is an
-        xrun, passing `userdata` as a parameter.
+        xrun.
 
         All "notification events" are received in a separated non RT
         thread, the code in the supplied function does not need to be
@@ -1179,14 +1146,11 @@ class Client(object):
             User-supplied function that is called whenever an xrun has
             occured.  It must have this signature::
 
-                callback(userdata) -> int
+                callback() -> int
 
             The `callback` must return zero on success and non-zero on
             error. You can use the module constants :data:`jack.SUCCESS`
             and :data:`jack.FAILURE`, respectively.
-        userdata : anything
-            This will be passed as argument whenever `callback` is
-            called.
 
         See Also
         --------
@@ -1195,7 +1159,7 @@ class Client(object):
         """
         @self._callback("JackXRunCallback", error=FAILURE)
         def callback_wrapper(_):
-            return callback(userdata)
+            return callback()
 
         _check(_lib.jack_set_xrun_callback(
             self._ptr, callback_wrapper, _ffi.NULL),

@@ -39,7 +39,7 @@ if client.status.name_not_unique:
 print("registering callbacks")
 
 
-def shutdown(status, reason, userdata):
+def shutdown(status, reason):
     print("JACK shutdown!")
     print("status:", status)
     print("reason:", reason)
@@ -47,59 +47,59 @@ def shutdown(status, reason, userdata):
 client.set_shutdown_callback(shutdown)
 
 
-def freewheel(starting, userdata):
+def freewheel(starting):
     print(["stopping", "starting"][starting], "freewheel mode")
 
 client.set_freewheel_callback(freewheel)
 
 
-def blocksize(blocksize, userdata):
+def blocksize(blocksize):
     print("setting blocksize to", blocksize)
     return jack.SUCCESS
 
 client.set_blocksize_callback(blocksize)
 
 
-def samplerate(samplerate, userdata):
+def samplerate(samplerate):
     print("setting samplerate to", samplerate)
     return jack.SUCCESS
 
 client.set_samplerate_callback(samplerate)
 
 
-def client_registration(name, register, userdata):
+def client_registration(name, register):
     print("client", repr(name), ["unregistered", "registered"][register])
 
 client.set_client_registration_callback(client_registration)
 
 
-def port_registration(port, register, userdata):
+def port_registration(port, register):
     print(repr(port), ["unregistered", "registered"][register])
 
 client.set_port_registration_callback(port_registration)
 
 
-def port_connect(a, b, connect, userdata):
+def port_connect(a, b, connect):
     print(["disconnected", "connected"][connect], a, "and", b)
 
 client.set_port_connect_callback(port_connect)
 
 
-def port_rename(port, old, new, userdata):
+def port_rename(port, old, new):
     print("renamed", port, "from", repr(old), "to", repr(new))
     return jack.SUCCESS
 
 client.set_port_rename_callback(port_rename)
 
 
-def graph_order(userdata):
+def graph_order():
     print("graph order changed")
     return jack.SUCCESS
 
 client.set_graph_order_callback(graph_order)
 
 
-def xrun(userdata):
+def xrun():
     print("xrun; delay", client.xrun_delayed_usecs, "microseconds")
     return jack.SUCCESS
 

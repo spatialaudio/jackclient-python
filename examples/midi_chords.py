@@ -20,7 +20,7 @@ inport = client.midi_inports.register("input")
 outport = client.midi_outports.register("output")
 
 
-def callback(frames, userdata):
+def callback(frames):
     outport.clear_buffer()
     for offset, indata in inport.incoming_midi_events():
         # Note: This may raise an exception:
