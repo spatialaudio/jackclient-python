@@ -1260,7 +1260,7 @@ class Client(object):
             User-supplied function that is called whenever an xrun has
             occured.  It must have this signature::
 
-                callback() -> None
+                callback(delayed_usecs:int) -> None
 
             The `callback` is supposed to raise :class:`CallbackExit` on
             error.
@@ -1273,7 +1273,7 @@ class Client(object):
         @self._callback("JackXRunCallback", error=_FAILURE)
         def callback_wrapper(_):
             try:
-                callback()
+                callback(self.xrun_delayed_usecs)
             except CallbackExit:
                 return _FAILURE
             return _SUCCESS
