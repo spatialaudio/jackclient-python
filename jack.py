@@ -1194,7 +1194,7 @@ class Client(object):
             User-supplied function that is called whenever an xrun has
             occured.  It must have this signature::
 
-                callback() -> [None | int]
+                callback(delayed_usecs:int) -> [None | int]
 
             The `callback` could return zero on success and non-zero on
             error. You can use the module constants :data:`jack.SUCCESS`
@@ -1208,7 +1208,7 @@ class Client(object):
         """
         @self._callback("JackXRunCallback", error=FAILURE)
         def callback_wrapper(_):
-            ret = callback()
+            ret = callback(self.xrun_delayed_usecs)
             if ret is None:
                 return SUCCESS
             return ret
