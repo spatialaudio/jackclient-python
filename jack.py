@@ -25,6 +25,7 @@ http://jackclient-python.rtfd.org/
 """
 __version__ = "0.2.0"
 
+import errno
 from cffi import FFI as _FFI
 
 _ffi = _FFI()
@@ -265,10 +266,6 @@ size_t jack_midi_max_event_size(void* port_buffer);
 jack_midi_data_t* jack_midi_event_reserve(void* port_buffer, jack_nframes_t time, size_t data_size);
 int jack_midi_event_write(void* port_buffer, jack_nframes_t time, const jack_midi_data_t* data, size_t data_size);
 uint32_t jack_midi_get_lost_event_count(void* port_buffer);
-
-/* errno.h */
-
-#define EEXIST 17
 """)
 
 # Packed structure
@@ -645,7 +642,7 @@ class Client(object):
             destination = destination.name
         err = _lib.jack_connect(self._ptr, source.encode(),
                                 destination.encode())
-        if err == _lib.EEXIST:
+        if err == errno.EEXIST:
             raise JackError("Connection {0!r} -> {1!r} "
                             "already exists".format(source, destination))
         _check(err,
