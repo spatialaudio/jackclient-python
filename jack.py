@@ -749,11 +749,35 @@ class Client(object):
 
         See Also
         --------
-        transport_query
+        transport_query, transport_reposition_struct
 
         """
         state = _lib.jack_transport_query(self._ptr, self._position)
         return state, self._position
+
+    def transport_reposition_struct(self, position):
+        """Request a new transport position.
+
+        May be called at any time by any client.  The new position takes
+        effect in two process cycles.  If there are slow-sync clients
+        and the transport is already rolling, it will enter the
+        :attr:`STARTING` state and begin invoking their sync callbacks
+        (see :meth:`set_sync_callback`) until ready.  This function is
+        realtime-safe.
+
+        Parameters
+        ----------
+        position : jack_position_t
+            Requested new transport position.  This is the same
+            structure as returned by :meth:`transport_query_struct`.
+
+        See Also
+        --------
+        transport_query_struct, transport_locate
+
+        """
+        _check(_lib.jack_transport_reposition(self._ptr, position),
+               "Error re-positioning transport")
 
     def set_freewheel(self, onoff):
         """Start/Stop JACK's "freewheel" mode.
