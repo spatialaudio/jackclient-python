@@ -1248,6 +1248,104 @@ class Client(object):
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting xrun callback")
 
+    def set_timebase_callback(self, callback, conditional=False,
+                              userdata=None):
+        """Register as timebase master for the JACK subsystem.
+
+        The timebase master registers a callback that updates extended
+        position information such as beats or timecode whenever
+        necessary. Without this extended information, there is no need
+        for this function.
+
+        There is never more than one master at a time. When a new client
+        takes over, the former callback is no longer called. Taking over
+        the timebase may be done conditionally, so it fails if there was
+        a master already.
+
+        The method may be called whether the client has been activated
+        or not.
+
+        Parameters
+        ----------
+        callback : callable
+            Realtime function that returns extended position
+            information. Its output affects all of the following process
+            cycle. This realtime function must not wait.
+
+            This function is called immediately after `process()` in the
+            same thread whenever the transport is rolling, or when any
+            client has requested a new position in the previous
+            cycle. The first cycle after `set_timebase_callback()` is
+            also treated as a new position, or the first cycle after
+            `jack_activate()` if the client had been inactive.
+
+            The timebase master may not use its `pos` argument to set
+            `pos.frame`. To change position, use
+            `jack_transport_reposition()` or
+            `jack_transport_locate()`. These functions are
+            realtime-safe, the `timebase_callback` can call them
+            directly.
+
+            It must have this signature::
+
+                callback(state:int,
+                         frames:int,
+                         pos:CFFI_struct,
+                         new_pos:bool, arg) -> None
+
+            * state : int
+                current transport state.
+            * frames : int
+                number of frames in current period.
+            * pos : Position CFFI structure
+                position structure for the next cycle; `pos.frame` will
+                be its frame number. If `new_pos` is `False`, this
+                structure contains extended position information from
+                the current cycle. If `True`, it contains whatever was
+                set by the requester. The `timebase_callback`'s task is
+                to update the extended information here. See `JACK
+                transport documentation`__ for the available fields.
+            * new_pos : bool
+                `True` (non-zero) for a newly requested `pos`, or for
+                the first cycle after the `timebase_callback` is
+                defined. `arg` the argument supplied by
+                `set_timebase_callback()`.
+            * arg :
+                the argument supplied by `set_timebase_callback()`.
+        conditional : bool
+            set to `True` for a conditional request. If set to `True`
+            this call will fail if there is already a timebase master
+        userdata :
+            an optional argument for the callback function.
+
+        Returns
+        -------
+        bool
+            `True` if new timebase master was set. `False` if
+            conditional request fail bacause another master is already
+            registered.
+
+__ http://jackaudio.org/files/docs/html/structjack__position__t.html
+
+        """
+        @self._callback("JackTimebaseCallback")
+        def callback_wrapper(state, frames, pos, new_pos, _):
+            return callback(state, frames, pos, new_pos, userdata)
+
+        return_code = _lib.jack_set_timebase_callback(self._ptr,
+                                                      conditional,
+                                                      callback_wrapper,
+                                                      _ffi.NULL)
+
+        if return_code == 0:
+            return True
+        elif conditional and return_code == -1:
+            return False
+        else:
+            raise JackError("{0} ({1})"
+                            .format("Error setting timebase callback",
+                                    return_code))
+
     def get_uuid_for_client_name(self, name):
         """Get the session ID for a client name.
 
