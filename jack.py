@@ -1248,8 +1248,7 @@ class Client(object):
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting xrun callback")
 
-    def set_timebase_callback(self, callback, conditional=False,
-                              userdata=None):
+    def set_timebase_callback(self, callback, conditional=False):
         """Register as timebase master for the JACK subsystem.
 
         The timebase master registers a callback that updates extended
@@ -1291,7 +1290,7 @@ class Client(object):
                 callback(state:int,
                          frames:int,
                          pos:CFFI_struct,
-                         new_pos:bool, arg) -> None
+                         new_pos:bool) -> None
 
             * state : int
                 current transport state.
@@ -1308,15 +1307,10 @@ class Client(object):
             * new_pos : bool
                 `True` (non-zero) for a newly requested `pos`, or for
                 the first cycle after the `timebase_callback` is
-                defined. `arg` the argument supplied by
-                `set_timebase_callback()`.
-            * arg :
-                the argument supplied by `set_timebase_callback()`.
+                defined.
         conditional : bool
             set to `True` for a conditional request. If set to `True`
             this call will fail if there is already a timebase master
-        userdata :
-            an optional argument for the callback function.
 
         Returns
         -------
@@ -1330,7 +1324,7 @@ __ http://jackaudio.org/files/docs/html/structjack__position__t.html
         """
         @self._callback("JackTimebaseCallback")
         def callback_wrapper(state, frames, pos, new_pos, _):
-            return callback(state, frames, pos, new_pos, userdata)
+            return callback(state, frames, pos, new_pos)
 
         return_code = _lib.jack_set_timebase_callback(self._ptr,
                                                       conditional,
