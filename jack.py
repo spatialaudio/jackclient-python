@@ -26,6 +26,7 @@ http://jackclient-python.rtfd.org/
 __version__ = "0.2.0"
 
 import errno as _errno
+import platform as _platform
 from cffi import FFI as _FFI
 
 _ffi = _FFI()
@@ -294,7 +295,14 @@ struct _jack_position {
 };
 """, packed=True)
 
-_lib = _ffi.dlopen("jack")
+# load library based on OS
+if _platform.system() == 'Windows':
+    if _platform.architecture()[0] == '64bit':
+        _lib = _ffi.dlopen("libjack64")
+    else:
+        _lib = _ffi.dlopen("libjack")
+else:
+    _lib = _ffi.dlopen("jack")
 
 _AUDIO = b"32 bit float mono audio"
 _MIDI = b"8 bit raw midi"

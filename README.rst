@@ -56,6 +56,9 @@ setuptools:
 Installation
 ------------
 
+Linux
++++++
+
 Once you have installed the above-mentioned dependencies, you can use pip_
 to download and install the latest release with a single command::
 
@@ -94,6 +97,25 @@ If you prefer, you can also replace the last command with::
 
 If you want to avoid installation altogether, you can simply copy ``jack.py``
 to your working directory (or to any directory in your Python path).
+
+Windows
++++++++
+
+First step is to install 'Jack Audio Conenction Kit' on Windows. On this page
+you should find a installer for your windows version :
+http://jackaudio.org/downloads/
+
+Then, for other python dependencies, you can install WinPython that already
+include Python, cffi and setuptools. Download a copy of WinPython here :
+http://winpython.sourceforge.net/
+
+Finnaly, you can install JACK-Client with pip. In WinPython installation
+directory, launch 'WinPython Command Prompt' and run::
+
+   pip install JACK-Client
+
+As mention previously, you can also download Jack-Client package from PyPI_ or
+get lastest source from Github_
 
 Usage
 -----
