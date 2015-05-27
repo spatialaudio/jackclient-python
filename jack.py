@@ -25,7 +25,7 @@ http://jackclient-python.rtfd.org/
 """
 __version__ = "0.2.0"
 
-import errno
+import errno as _errno
 from cffi import FFI as _FFI
 
 _ffi = _FFI()
@@ -642,7 +642,7 @@ class Client(object):
             destination = destination.name
         err = _lib.jack_connect(self._ptr, source.encode(),
                                 destination.encode())
-        if err == errno.EEXIST:
+        if err == _errno.EEXIST:
             raise JackError("Connection {0!r} -> {1!r} "
                             "already exists".format(source, destination))
         _check(err,
