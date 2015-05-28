@@ -20,7 +20,7 @@ Python:
    Any version where CFFI (see below) is supported should work.
    If you don't have Python installed yet, you should get one of the
    distributions which already include CFFI (and many other useful things),
-   e.g. Anaconda_.
+   e.g. Anaconda_ or WinPython_.
 
 CFFI:
    The `C Foreign Function Interface for Python`_ is used to access the C-API
@@ -36,6 +36,8 @@ JACK library:
    to find it).  Again, you should use your package manager to install it.
    Make sure you install the JACK daemon (called ``jackd``). This will also
    install the JACK library package.
+   If you don't have a package manager, you can try one of the binary installers
+   from the `JACK download page`_.
    If you prefer, you can of course also download the sources and compile
    everything locally.
 
@@ -48,9 +50,11 @@ setuptools:
 
 .. _Python: http://www.python.org/
 .. _Anaconda: http://docs.continuum.io/anaconda/
+.. _WinPython: http://winpython.github.io/
 .. _C Foreign Function Interface for Python: http://cffi.readthedocs.org/
 .. _PyPy: http://pypy.org/
 .. _JACK: http://jackaudio.org/
+.. _JACK download page: http://jackaudio.org/downloads/
 .. _pip: http://www.pip-installer.org/en/latest/installing.html
 
 Installation
