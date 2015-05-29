@@ -851,6 +851,23 @@ class Client(object):
         pthread_mutex_lock, sleep, wait, poll, select, pthread_join,
         pthread_cond_wait, etc, etc.
 
+        .. warning:: Most Python interpreters use a `global interpreter
+           lock (GIL)`__, which violates the above real-time
+           requirement.  Furthermore, Python's `garbage collector`__
+           might become active at an inconvenient time and block the
+           process callback for some time.
+
+           Because of this, Python is not really suitable for real-time
+           processing.  If you want to implement a *reliable* real-time
+           audio/MIDI application, you should use a different
+           programming language, such as C or C++.
+
+           If you can live with some random audio drop-outs now and
+           then, feel free to continue using Python!
+
+        __ http://en.wikipedia.org/wiki/Global_Interpreter_Lock
+        __ http://en.wikipedia.org/wiki/Garbage_collection_(computer_science)
+
         .. note:: This function cannot be called while the client is
            activated (after :meth:`activate` has been called).
 
