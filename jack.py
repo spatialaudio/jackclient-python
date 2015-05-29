@@ -761,11 +761,12 @@ class Client(object):
             The transport state can take following values:
             :attr:`STOPPED`, :attr:`ROLLING`, :attr:`STARTING` and
             :attr:`NETSTARTING`.
-        position : CFFI struct object
+        position : jack_position_t
             See the `JACK transport documentation`__ for the available
             fields.
 
-            __ http://jackaudio.org/files/docs/html/structjack__position__t.html
+            __ http://jackaudio.org/files/docs/html/
+               structjack__position__t.html
 
         See Also
         --------
@@ -1269,86 +1270,78 @@ class Client(object):
 
         The timebase master registers a callback that updates extended
         position information such as beats or timecode whenever
-        necessary. Without this extended information, there is no need
+        necessary.  Without this extended information, there is no need
         for this function.
 
-        There is never more than one master at a time. When a new client
-        takes over, the former callback is no longer called. Taking over
-        the timebase may be done conditionally, so it fails if there was
-        a master already.
-
-        The method may be called whether the client has been activated
-        or not.
+        There is never more than one master at a time.  When a new
+        client takes over, the former callback is no longer called.
+        Taking over the timebase may be done conditionally, so that
+        `callback` is not registered if there was a master already.
 
         Parameters
         ----------
         callback : callable
             Realtime function that returns extended position
-            information. Its output affects all of the following process
-            cycle. This realtime function must not wait.
+            information.  Its output affects all of the following process
+            cycle.  This realtime function must not wait.
+            It is called immediately after the process callback (see
+            :meth:`set_process_callback`) in the same thread whenever
+            the transport is rolling, or when any client has requested a
+            new position in the previous cycle.  The first cycle after
+            :meth:`set_timebase_callback()` is also treated as a new
+            position, or the first cycle after :meth:`activate()` if the
+            client had been inactive.
+            The `callback` must have this signature::
 
-            This function is called immediately after `process()` in the
-            same thread whenever the transport is rolling, or when any
-            client has requested a new position in the previous
-            cycle. The first cycle after `set_timebase_callback()` is
-            also treated as a new position, or the first cycle after
-            `jack_activate()` if the client had been inactive.
+                callback(state:int, blocksize:int, pos:jack_position_t, new_pos:bool) -> None
 
-            The timebase master may not use its `pos` argument to set
-            `pos.frame`. To change position, use
-            `jack_transport_reposition()` or
-            `jack_transport_locate()`. These functions are
-            realtime-safe, the `timebase_callback` can call them
-            directly.
+            `state`
+                The current transport state.
+                See :attr:`transport_state`.
+            `blocksize`
+                The number of frames in the current period.
+                See :attr:`blocksize`.
+            `pos`
+                The position structure for the next cycle; `pos.frame`
+                will be its frame number.  If `new_pos` is ``False``,
+                this structure contains extended position information
+                from the current cycle.  If `new_pos` is ``True``, it
+                contains whatever was set by the requester.
+                The `callback`'s task is to update the extended
+                information here.  See :meth:`transport_query_struct`
+                for details about `jack_position_t`.
+            `new_pos`
+                ``True`` for a newly requested `pos`, or for the first
+                cycle after the timebase callback is defined.
 
-            It must have this signature::
-
-                callback(state:int,
-                         frames:int,
-                         pos:CFFI_struct,
-                         new_pos:bool) -> None
-
-            * state : int
-                current transport state.
-            * frames : int
-                number of frames in current period.
-            * pos : Position CFFI structure
-                position structure for the next cycle; `pos.frame` will
-                be its frame number. If `new_pos` is `False`, this
-                structure contains extended position information from
-                the current cycle. If `True`, it contains whatever was
-                set by the requester. The `timebase_callback`'s task is
-                to update the extended information here. See
-                :meth:`transport_query_struct` for the available fields.
-            * new_pos : bool
-                `True` (non-zero) for a newly requested `pos`, or for
-                the first cycle after the `timebase_callback` is
-                defined.
+            .. note:: The `pos` argument must not be used to set
+               `pos.frame`.  To change position, use
+               :meth:`transport_reposition_struct()` or
+               :meth:`transport_locate()`.  These functions are
+               realtime-safe, the timebase callback can call them
+               directly.
         conditional : bool
-            set to `True` for a conditional request. If set to `True`
-            this call will fail if there is already a timebase master
+            Set to ``True`` for a conditional request.
 
         Returns
         -------
         bool
-            `True` if new timebase master was set. `False` if
-            conditional request fail because another master is already
-            registered.
+            ``True`` if the timebase callback was registered.
+            ``False`` if a conditional request failed because another
+            timebase master is already registered.
+
         """
         if callback is None:
             return lambda cb: self.set_timebase_callback(cb, conditional)
 
         @self._callback("JackTimebaseCallback")
-        def callback_wrapper(state, frames, pos, new_pos, _):
-            return callback(state, frames, pos, bool(new_pos))
+        def callback_wrapper(state, blocksize, pos, new_pos, _):
+            return callback(state, blocksize, pos, bool(new_pos))
 
-        err = _lib.jack_set_timebase_callback(self._ptr,
-                                              conditional,
-                                              callback_wrapper,
-                                              _ffi.NULL)
+        err = _lib.jack_set_timebase_callback(self._ptr, conditional,
+                                              callback_wrapper, _ffi.NULL)
 
-        # Because of a bug in JACK2 version <= 1.9.10, we also check 
-        # for -1:
+        # Because of a bug in JACK2 version <= 1.9.10, we also check for -1.
         # See https://github.com/jackaudio/jack2/pull/123
         if conditional and err in (_errno.EBUSY, -1):
             return False

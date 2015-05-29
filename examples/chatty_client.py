@@ -3,8 +3,8 @@
 """Create a JACK client that prints a lot of information.
 
 This client registers all possible callbacks (except the process
-callback, which would be just too much noise) and prints some
-information whenever they are called.
+callback and the timebase callback, which would be just too much noise)
+and prints some information whenever they are called.
 
 """
 from __future__ import print_function  # only needed for Python 2.x
