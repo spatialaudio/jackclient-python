@@ -730,22 +730,7 @@ class Client(object):
 
         """
         state, pos = self.transport_query_struct()
-        assert pos.unique_1 == pos.unique_2
-
-        keys = ['usecs', 'frame_rate', 'frame']
-        if pos.valid & _lib.JackPositionBBT:
-            keys += ['bar', 'beat', 'tick', 'bar_start_tick', 'beats_per_bar',
-                     'beat_type', 'ticks_per_beat', 'beats_per_minute']
-        if pos.valid & _lib.JackPositionTimecode:
-            keys += ['frame_time', 'next_time']
-        if pos.valid & _lib.JackBBTFrameOffset:
-            keys += ['bbt_offset']
-        if pos.valid & _lib.JackAudioVideoRatio:
-            keys += ['audio_frames_per_video_frame']
-        if pos.valid & _lib.JackVideoFrameOffset:
-            keys += ['video_offset']
-
-        return TransportState(state), dict((k, getattr(pos, k)) for k in keys)
+        return TransportState(state), position2dict(pos)
 
     def transport_query_struct(self):
         """Query the current transport state and position.
@@ -2451,6 +2436,26 @@ class JackError(Exception):
     """Exception for all kinds of JACK-related errors."""
 
     pass
+
+
+def position2dict(pos):
+    """Convert CFFI position struct to a dict."""
+    assert pos.unique_1 == pos.unique_2
+
+    keys = ['usecs', 'frame_rate', 'frame']
+    if pos.valid & _lib.JackPositionBBT:
+        keys += ['bar', 'beat', 'tick', 'bar_start_tick', 'beats_per_bar',
+                 'beat_type', 'ticks_per_beat', 'beats_per_minute']
+    if pos.valid & _lib.JackPositionTimecode:
+        keys += ['frame_time', 'next_time']
+    if pos.valid & _lib.JackBBTFrameOffset:
+        keys += ['bbt_offset']
+    if pos.valid & _lib.JackAudioVideoRatio:
+        keys += ['audio_frames_per_video_frame']
+    if pos.valid & _lib.JackVideoFrameOffset:
+        keys += ['video_offset']
+
+    return dict((k, getattr(pos, k)) for k in keys)
 
 
 def version():
