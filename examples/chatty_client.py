@@ -53,13 +53,11 @@ def freewheel(starting):
 @client.set_blocksize_callback
 def blocksize(blocksize):
     print("setting blocksize to", blocksize)
-    return jack.SUCCESS
 
 
 @client.set_samplerate_callback
 def samplerate(samplerate):
     print("setting samplerate to", samplerate)
-    return jack.SUCCESS
 
 
 @client.set_client_registration_callback
@@ -81,7 +79,6 @@ try:
     @client.set_port_rename_callback
     def port_rename(port, old, new):
         print("renamed", port, "from", repr(old), "to", repr(new))
-        return jack.SUCCESS
 except AttributeError:
     print("Could not register port rename callback (not available on JACK1).")
 
@@ -89,13 +86,11 @@ except AttributeError:
 @client.set_graph_order_callback
 def graph_order():
     print("graph order changed")
-    return jack.SUCCESS
 
 
 @client.set_xrun_callback
 def xrun():
     print("xrun; delay", client.xrun_delayed_usecs, "microseconds")
-    return jack.SUCCESS
 
 
 print("activating JACK")

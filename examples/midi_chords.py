@@ -32,7 +32,6 @@ def process(frames):
                 for i in INTERVALS:
                     # Note: This may raise an exception:
                     outport.write_midi_event(offset, (status, pitch + i, vel))
-    return jack.CALL_AGAIN
 
 with client:
     print("#" * 80)

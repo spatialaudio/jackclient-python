@@ -316,14 +316,8 @@ STARTING = _lib.JackTransportStarting
 NETSTARTING = _lib.JackTransportNetStarting
 """Waiting for sync ready on the network."""
 
-CALL_AGAIN = 0
-"""Possible return value for process callback."""
-STOP_CALLING = 1
-"""Possible return value for process callback."""
-SUCCESS = 0
-"""Possible return value for several callbacks."""
-FAILURE = 1
-"""Possible return value for several callbacks."""
+_SUCCESS = 0
+_FAILURE = 1
 
 
 class Client(object):
@@ -835,7 +829,7 @@ class Client(object):
         """
         @self._callback("JackInfoShutdownCallback")
         def callback_wrapper(code, reason, _):
-            return callback(Status(code), _ffi.string(reason).decode())
+            callback(Status(code), _ffi.string(reason).decode())
 
         _lib.jack_on_info_shutdown(self._ptr, callback_wrapper, _ffi.NULL)
 
@@ -877,22 +871,28 @@ class Client(object):
             User-supplied function that is called by the engine anytime
             there is work to be done.  It must have this signature::
 
-                callback(frames:int) -> int
+                callback(frames:int) -> None
 
             The argument `frames` specifies the number of frames that
             have to be processed in the current audio block. It will be
             the same number as :attr:`blocksize` and it will be a power
             of two.
-            The `callback` must return zero on success (if `callback`
-            shall be called again for the next audio block) and non-zero
-            on error (if `callback` shall not be called again).
-            You can use the module constants :data:`CALL_AGAIN` and
-            :data:`STOP_CALLING`, respectively.
+
+            As long as the client is active, the `callback` will be
+            called once in each process cycle.  However, if an exception
+            is raised inside of a `callback`, it will not be called
+            anymore.  The exception :class:`CallbackExit` can be used to
+            silently prevent further callback invocations, all other
+            exceptions will print an error message to *stderr*.
 
         """
-        @self._callback("JackProcessCallback", error=STOP_CALLING)
+        @self._callback("JackProcessCallback", error=_FAILURE)
         def callback_wrapper(frames, _):
-            return callback(frames)
+            try:
+                callback(frames)
+            except CallbackExit:
+                return _FAILURE
+            return _SUCCESS
 
         _check(_lib.jack_set_process_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
@@ -931,7 +931,7 @@ class Client(object):
         """
         @self._callback("JackFreewheelCallback")
         def callback_wrapper(starting, _):
-            return callback(bool(starting))
+            callback(bool(starting))
 
         _check(_lib.jack_set_freewheel_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
@@ -958,12 +958,11 @@ class Client(object):
             User-supplied function that is invoked whenever the JACK
             engine buffer size changes.  It must have this signature::
 
-                callback(blocksize:int) -> int
+                callback(blocksize:int) -> None
 
             The argument `blocksize` is the new buffer size.
-            The `callback` must return zero on success and non-zero on
-            error. You can use the module constants :data:`jack.SUCCESS`
-            and :data:`jack.FAILURE`, respectively.
+            The `callback` is supposed to raise :class:`CallbackExit` on
+            error.
 
             .. note:: Although this function is called in the JACK
                process thread, the normal process cycle is suspended
@@ -977,9 +976,13 @@ class Client(object):
         :attr:`blocksize`
 
         """
-        @self._callback("JackBufferSizeCallback", error=FAILURE)
+        @self._callback("JackBufferSizeCallback", error=_FAILURE)
         def callback_wrapper(blocksize, _):
-            return callback(blocksize)
+            try:
+                callback(blocksize)
+            except CallbackExit:
+                return _FAILURE
+            return _SUCCESS
 
         _check(_lib.jack_set_buffer_size_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
@@ -1004,21 +1007,24 @@ class Client(object):
             User-supplied function that is called when the engine sample
             rate changes.  It must have this signature::
 
-                callback(samplerate:int) -> int
+                callback(samplerate:int) -> None
 
             The argument `samplerate` is the new engine sample rate.
-            The `callback` must return zero on success and non-zero on
-            error. You can use the module constants :data:`jack.SUCCESS`
-            and :data:`jack.FAILURE`, respectively.
+            The `callback` is supposed to raise :class:`CallbackExit` on
+            error.
 
         See Also
         --------
         :attr:`samplerate`
 
         """
-        @self._callback("JackSampleRateCallback", error=FAILURE)
+        @self._callback("JackSampleRateCallback", error=_FAILURE)
         def callback_wrapper(samplerate, _):
-            return callback(samplerate)
+            try:
+                callback(samplerate)
+            except CallbackExit:
+                return _FAILURE
+            return _SUCCESS
 
         _check(_lib.jack_set_sample_rate_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
@@ -1052,7 +1058,7 @@ class Client(object):
         """
         @self._callback("JackClientRegistrationCallback")
         def callback_wrapper(name, register, _):
-            return callback(_ffi.string(name).decode(), bool(register))
+            callback(_ffi.string(name).decode(), bool(register))
 
         _check(_lib.jack_set_client_registration_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
@@ -1093,7 +1099,7 @@ class Client(object):
         @self._callback("JackPortRegistrationCallback")
         def callback_wrapper(port, register, _):
             port = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, port))
-            return callback(port, bool(register))
+            callback(port, bool(register))
 
         _check(_lib.jack_set_port_registration_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
@@ -1135,7 +1141,7 @@ class Client(object):
         def callback_wrapper(a, b, connect, _):
             a = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, a))
             b = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, b))
-            return callback(a, b, bool(connect))
+            callback(a, b, bool(connect))
 
         _check(_lib.jack_set_port_connect_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
@@ -1160,15 +1166,14 @@ class Client(object):
             User-supplied function that is called whenever the port name
             has been changed.  It must have this signature::
 
-                callback(port:Port, old:str, new:str) -> int
+                callback(port:Port, old:str, new:str) -> None
 
             The first argument is the port that has been renamed (a
             :class:`Port`, :class:`MidiPort`, :class:`OwnPort` or
             :class:`OwnMidiPort` object); the second and third argument
             is the old and new name, respectively.
-            The `callback` must return zero on success and non-zero on
-            error. You can use the module constants :data:`jack.SUCCESS`
-            and :data:`jack.FAILURE`, respectively.
+            The `callback` is supposed to raise :class:`CallbackExit` on
+            error.
 
         See Also
         --------
@@ -1184,11 +1189,15 @@ class Client(object):
            94c819accfab2612050e875c24cf325daa0fd26d
 
         """
-        @self._callback("JackPortRenameCallback", error=FAILURE)
+        @self._callback("JackPortRenameCallback", error=_FAILURE)
         def callback_wrapper(port, old_name, new_name, _):
             port = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, port))
-            return callback(port, _ffi.string(old_name).decode(),
-                            _ffi.string(new_name).decode())
+            try:
+                callback(port, _ffi.string(old_name).decode(),
+                         _ffi.string(new_name).decode())
+            except CallbackExit:
+                return _FAILURE
+            return _SUCCESS
 
         _check(_lib.jack_set_port_rename_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
@@ -1214,16 +1223,19 @@ class Client(object):
             processing graph is reordered.
             It must have this signature::
 
-                callback() -> int
+                callback() -> None
 
-            The `callback` must return zero on success and non-zero on
-            error. You can use the module constants :data:`jack.SUCCESS`
-            and :data:`jack.FAILURE`, respectively.
+            The `callback` is supposed to raise :class:`CallbackExit` on
+            error.
 
         """
-        @self._callback("JackGraphOrderCallback", error=FAILURE)
+        @self._callback("JackGraphOrderCallback", error=_FAILURE)
         def callback_wrapper(_):
-            return callback()
+            try:
+                callback()
+            except CallbackExit:
+                return _FAILURE
+            return _SUCCESS
 
         _check(_lib.jack_set_graph_order_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
@@ -1248,20 +1260,23 @@ class Client(object):
             User-supplied function that is called whenever an xrun has
             occured.  It must have this signature::
 
-                callback() -> int
+                callback() -> None
 
-            The `callback` must return zero on success and non-zero on
-            error. You can use the module constants :data:`jack.SUCCESS`
-            and :data:`jack.FAILURE`, respectively.
+            The `callback` is supposed to raise :class:`CallbackExit` on
+            error.
 
         See Also
         --------
         :attr:`xrun_delayed_usecs`
 
         """
-        @self._callback("JackXRunCallback", error=FAILURE)
+        @self._callback("JackXRunCallback", error=_FAILURE)
         def callback_wrapper(_):
-            return callback()
+            try:
+                callback()
+            except CallbackExit:
+                return _FAILURE
+            return _SUCCESS
 
         _check(_lib.jack_set_xrun_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
@@ -1338,7 +1353,7 @@ class Client(object):
 
         @self._callback("JackTimebaseCallback")
         def callback_wrapper(state, blocksize, pos, new_pos, _):
-            return callback(state, blocksize, pos, bool(new_pos))
+            callback(state, blocksize, pos, bool(new_pos))
 
         err = _lib.jack_set_timebase_callback(self._ptr, conditional,
                                               callback_wrapper, _ffi.NULL)
@@ -2439,6 +2454,24 @@ class JackError(Exception):
     pass
 
 
+class CallbackExit(Exception):
+
+    """To be raised in a callback function to signal failure.
+
+    See Also
+    --------
+    :meth:`Client.set_process_callback`
+    :meth:`Client.set_blocksize_callback`
+    :meth:`Client.set_samplerate_callback`
+    :meth:`Client.set_port_rename_callback`
+    :meth:`Client.set_graph_order_callback`
+    :meth:`Client.set_xrun_callback`
+
+    """
+
+    pass
+
+
 def position2dict(pos):
     """Convert CFFI position struct to a dict."""
     assert pos.unique_1 == pos.unique_2
@@ -2543,7 +2576,7 @@ def _set_error_or_info_function(callback, setter):
     else:
         @_ffi.callback("void (*)(const char*)")
         def callback_wrapper(msg):
-            return callback(_ffi.string(msg).decode())
+            callback(_ffi.string(msg).decode())
 
         _keepalive[setter] = callback_wrapper
     setter(callback_wrapper)

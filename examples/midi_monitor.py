@@ -14,7 +14,6 @@ def process(frames):
     for offset, data in port.incoming_midi_events():
         print("{0}: 0x{1}".format(client.last_frame_time + offset,
                                   binascii.hexlify(data).decode()))
-    return jack.CALL_AGAIN
 
 with client:
     print("#" * 80)

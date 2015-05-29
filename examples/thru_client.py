@@ -47,7 +47,6 @@ def process(frames):
     assert frames == client.blocksize
     for i, o in zip(client.inports, client.outports):
         o.get_buffer()[:] = i.get_buffer()
-    return jack.CALL_AGAIN
 
 
 @client.set_shutdown_callback

@@ -122,7 +122,6 @@ def process(frames):
     dead = [k for k, v in voices.items() if v.weight <= 0]
     for pitch in dead:
         del voices[pitch]
-    return jack.CALL_AGAIN
 
 
 @client.set_samplerate_callback
@@ -130,7 +129,6 @@ def samplerate(samplerate):
     global fs
     fs = samplerate
     voices.clear()
-    return jack.SUCCESS
 
 
 @client.set_shutdown_callback
