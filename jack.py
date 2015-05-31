@@ -1170,6 +1170,15 @@ class Client(object):
         --------
         :attr:`Port.shortname`
 
+        Notes
+        -----
+        The port rename callback is not available in JACK 1!
+        See `this mailing list posting`__ and `this commit message`__.
+
+        __ http://comments.gmane.org/gmane.comp.audio.jackit/28888
+        __ https://github.com/jackaudio/jack1/commit/
+           94c819accfab2612050e875c24cf325daa0fd26d
+
         """
         @self._callback("JackPortRenameCallback", error=FAILURE)
         def callback_wrapper(port, old_name, new_name, _):
