@@ -1248,7 +1248,7 @@ class Client(object):
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting xrun callback")
 
-    def set_timebase_callback(self, callback, conditional=False):
+    def set_timebase_callback(self, callback=None, conditional=False):
         """Register as timebase master for the JACK subsystem.
 
         The timebase master registers a callback that updates extended
@@ -1302,8 +1302,8 @@ class Client(object):
                 structure contains extended position information from
                 the current cycle. If `True`, it contains whatever was
                 set by the requester. The `timebase_callback`'s task is
-                to update the extended information here. See `JACK
-                transport documentation`__ for the available fields.
+                to update the extended information here. See
+                :meth:`transport_query_struct` for the available fields.
             * new_pos : bool
                 `True` (non-zero) for a newly requested `pos`, or for
                 the first cycle after the `timebase_callback` is
@@ -1316,29 +1316,26 @@ class Client(object):
         -------
         bool
             `True` if new timebase master was set. `False` if
-            conditional request fail bacause another master is already
+            conditional request fail because another master is already
             registered.
-
-__ http://jackaudio.org/files/docs/html/structjack__position__t.html
-
         """
+        if callback is None:
+            return lambda cb: self.set_timebase_callback(cb, conditional)
+
         @self._callback("JackTimebaseCallback")
         def callback_wrapper(state, frames, pos, new_pos, _):
-            return callback(state, frames, pos, new_pos)
+            return callback(state, frames, pos, bool(new_pos))
 
-        return_code = _lib.jack_set_timebase_callback(self._ptr,
-                                                      conditional,
-                                                      callback_wrapper,
-                                                      _ffi.NULL)
+        err = _lib.jack_set_timebase_callback(self._ptr,
+                                              conditional,
+                                              callback_wrapper,
+                                              _ffi.NULL)
 
-        if return_code == 0:
-            return True
-        elif conditional and return_code == -1:
+        # Because of a bug in JACK2 (see TODO), we also check for -1:
+        if conditional and err in (_errno.EBUSY, -1):
             return False
-        else:
-            raise JackError("{0} ({1})"
-                            .format("Error setting timebase callback",
-                                    return_code))
+        _check(err, "Error setting timebase callback")
+        return True
 
     def get_uuid_for_client_name(self, name):
         """Get the session ID for a client name.
