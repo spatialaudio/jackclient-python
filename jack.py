@@ -1331,7 +1331,8 @@ class Client(object):
                                               callback_wrapper,
                                               _ffi.NULL)
 
-        # Because of a bug in JACK2 (see TODO), we also check for -1:
+        # Because of a bug in JACK2 version <= 1.9.10, we also check 
+        # for -1:
         # See https://github.com/jackaudio/jack2/pull/123
         if conditional and err in (_errno.EBUSY, -1):
             return False
