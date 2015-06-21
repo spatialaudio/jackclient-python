@@ -1,7 +1,5 @@
 include LICENSE
-include NEWS.rst
-include doc/Makefile
-include doc/make.bat
+include *.rst
 include doc/requirements.txt
 recursive-include doc *.rst *.py
 recursive-include examples *.py
