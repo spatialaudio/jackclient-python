@@ -35,37 +35,26 @@ print("Ticks per beat: %s" % TICKS_PER_BEAT)
 @client.set_timebase_callback
 def timebase_callback(state, blocksize, pos, new_pos):
 
-    pos.valid = 0x10  # BBT Fields
-
     if new_pos:
         print("Position changed")
-        pos.bar_start_tick = BAR_START_TICK
-        pos.beats_per_bar = BEATS_PER_BAR
-        pos.beat_type = BEAT_TYPE
-        pos.ticks_per_beat = TICKS_PER_BEAT
-        pos.beats_per_minute = BPM
-    else:
-        if pos.bar_start_tick != BAR_START_TICK:
-            print("'bar start tick' modified by another app %s -> %s"
-                  % (BAR_START_TICK, pos.bar_start_tick))
-        if pos.beats_per_bar != BEATS_PER_BAR:
-            print("'beats per bar' modified by another app %s -> %s"
-                  % (BEATS_PER_BAR, pos.beats_per_bar))
-        if pos.beat_type != BEAT_TYPE:
-            print("'beat type' modified by another app %s -> %s"
-                  % (BEAT_TYPE, pos.beat_type))
-        if pos.ticks_per_beat != TICKS_PER_BEAT:
-            print("'ticks per beat' modified by another app %s -> %s"
-                  % (TICKS_PER_BEAT, pos.ticks_per_beat))
-        if pos.beats_per_minute != BPM:
-            print("'beats per minute' modified by another app or user %s -> %s"
-                  % (BPM, pos.beats_per_minute))
 
     if not pos.frame_rate:
         print("Frame position : %s" % pos.frame)
         print("Frame rate : %s" % pos.frame_rate)
         print("State : %s" % state)
+        print("Valid : %s" % pos.valid)
 
+    if pos.valid & 0x10:
+        check_modified_fields(pos)
+
+    # Set static fields (bpm, beat per bar, ...)
+    pos.bar_start_tick = BAR_START_TICK
+    pos.beats_per_bar = BEATS_PER_BAR
+    pos.beat_type = BEAT_TYPE
+    pos.ticks_per_beat = TICKS_PER_BEAT
+    pos.beats_per_minute = BPM
+
+    # Compute and set variable fields (bar, beat, ticks)
     ticks_per_second = ((pos.beats_per_minute *
                          pos.ticks_per_beat) / 60)
     ticks = (ticks_per_second * pos.frame) / pos.frame_rate
@@ -74,10 +63,41 @@ def timebase_callback(state, blocksize, pos, new_pos):
     (bar, beat) = divmod(beats, int(round(pos.beats_per_bar, 0)))
     pos.bar = bar + 1
     pos.beat = beat + 1
+
+    # Set valids fields
+    pos.valid = 0x10  # BBT Fields
+
     return None
 
 
-# activate !
+def check_modified_fields(pos):
+    print("Checking fields...")
+    modified = False
+    if pos.bar_start_tick != BAR_START_TICK:
+        modified = True
+        print("'bar start tick' modified %s -> %s"
+              % (BAR_START_TICK, pos.bar_start_tick))
+    if pos.beats_per_bar != BEATS_PER_BAR:
+        modified = True
+        print("'beats per bar' modified %s -> %s"
+              % (BEATS_PER_BAR, pos.beats_per_bar))
+    if pos.beat_type != BEAT_TYPE:
+        modified = True
+        print("'beat type' modified b%s -> %s"
+              % (BEAT_TYPE, pos.beat_type))
+    if pos.ticks_per_beat != TICKS_PER_BEAT:
+        modified = True
+        print("'ticks per beat' modified %s -> %s"
+              % (TICKS_PER_BEAT, pos.ticks_per_beat))
+    if pos.beats_per_minute != BPM:
+        modified = True
+        print("'beats per minute' modified %s -> %s"
+              % (BPM, pos.beats_per_minute))
+    if modified:
+        print("pos.valid : %s" % pos.valid)
+
+
+# activate client
 with client:
 
     response = BPM
