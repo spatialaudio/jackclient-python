@@ -27,6 +27,7 @@ setup(
     version=__version__,
     py_modules=["jack"],
     install_requires=["CFFI"],
+    extras_require={"NumPy": ["NumPy"]},
     author="Matthias Geier",
     author_email="Matthias.Geier@gmail.com",
     description="JACK Audio Connection Kit (JACK) Client for Python",
