@@ -14,6 +14,7 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
+__version__ = "unknown"
 
 # "import" __version__
 for line in open("jack.py"):
@@ -25,7 +26,7 @@ setup(
     name="JACK-Client",
     version=__version__,
     py_modules=["jack"],
-    install_requires=['cffi'],
+    install_requires=["CFFI"],
     author="Matthias Geier",
     author_email="Matthias.Geier@gmail.com",
     description="JACK Audio Connection Kit (JACK) Client for Python",
