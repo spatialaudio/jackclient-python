@@ -51,7 +51,8 @@ JACK library:
    everything locally.
 
 NumPy (optional):
-   NumPy_ is only needed if you want to NumPy arrays in the process callback.
+   NumPy_ is only needed if you want to access the input and output buffers in
+   the process callback as NumPy arrays.
    The only place where NumPy is needed is `jack.OwnPort.get_array()`.
    If you need NumPy, you should install it with your package manager or use a
    Python distribution that already includes NumPy (see above).
