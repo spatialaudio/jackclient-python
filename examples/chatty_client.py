@@ -77,10 +77,13 @@ def port_connect(a, b, connect):
     print(["disconnected", "connected"][connect], a, "and", b)
 
 
-@client.set_port_rename_callback
-def port_rename(port, old, new):
-    print("renamed", port, "from", repr(old), "to", repr(new))
-    return jack.SUCCESS
+try:
+    @client.set_port_rename_callback
+    def port_rename(port, old, new):
+        print("renamed", port, "from", repr(old), "to", repr(new))
+        return jack.SUCCESS
+except:
+    print("Could not register port rename callback (not available on JACK1).")
 
 
 @client.set_graph_order_callback
