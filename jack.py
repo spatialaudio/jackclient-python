@@ -23,7 +23,7 @@
 http://jackclient-python.rtfd.org/
 
 """
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 import errno as _errno
 import platform as _platform
