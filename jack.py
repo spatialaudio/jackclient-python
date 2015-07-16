@@ -2305,43 +2305,21 @@ class RingBuffer(object):
         return self._ptr.size
 
 
-def _make_statusbase():
-    """Create base class for Status."""
-    import numbers
-
-    def redirect(name):
-
-        def redirected(self, *args):
-            return getattr(self._code, name)(*args)
-
-        return redirected
-
-    names = set(['__gt__', '__ge__'])
-    names.update(numbers.Integral.__abstractmethods__)
-    namespace = dict((name, redirect(name)) for name in names)
-    namespace.update({
-        '__slots__': '_code',
-        '__init__': lambda self, code: setattr(self, '_code', code),
-        '__eq__': lambda self, other: int(self) == other,
-    })
-    return type("_StatusBase", (), namespace)
-
-_StatusBase = _make_statusbase()
-del _make_statusbase
-
-
-class Status(_StatusBase):
+class Status(object):
 
     """Representation of the JACK status bits."""
 
-    __slots__ = ()
+    __slots__ = '_code'
+
+    def __init__(self, code):
+        self._code = code
 
     def __repr__(self):
         flags = ", ".join(name for name in dir(self)
                           if not name.startswith('_') and getattr(self, name))
         if not flags:
             flags = "no flags set"
-        return "<jack.Status 0x{0:X}: {1}>".format(int(self), flags)
+        return "<jack.Status 0x{0:X}: {1}>".format(self._code, flags)
 
     @property
     def failure(self):
@@ -2424,10 +2402,10 @@ class Status(_StatusBase):
 
     def _hasflag(self, flag):
         """Helper function for Status properties."""
-        return bool(self & flag)
+        return bool(self._code & flag)
 
 
-class TransportState(_StatusBase):
+class TransportState(object):
 
     """Representation of the JACK transport state.
 
@@ -2437,7 +2415,13 @@ class TransportState(_StatusBase):
 
     """
 
-    __slots__ = ()
+    __slots__ = '_code'
+
+    def __init__(self, code):
+        self._code = code
+
+    def __eq__(self, other):
+        return self._code == other
 
     def __repr__(self):
         return "jack." + {
@@ -2445,7 +2429,7 @@ class TransportState(_StatusBase):
             _lib.JackTransportRolling: 'ROLLING',
             _lib.JackTransportStarting: 'STARTING',
             _lib.JackTransportNetStarting: 'NETSTARTING',
-        }[int(self)]
+        }[self._code]
 
 
 class JackError(Exception):
