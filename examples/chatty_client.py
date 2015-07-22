@@ -82,7 +82,7 @@ try:
     def port_rename(port, old, new):
         print("renamed", port, "from", repr(old), "to", repr(new))
         return jack.SUCCESS
-except:
+except AttributeError:
     print("Could not register port rename callback (not available on JACK1).")
 
 
