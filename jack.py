@@ -2461,12 +2461,9 @@ def position2dict(pos):
 
 def version():
     """Get tuple of major/minor/micro/protocol version."""
-    major_ptr = _ffi.new("int*")
-    minor_ptr = _ffi.new("int*")
-    micro_ptr = _ffi.new("int*")
-    proto_ptr = _ffi.new("int*")
-    _lib.jack_get_version(major_ptr, minor_ptr, micro_ptr, proto_ptr)
-    return major_ptr[0], minor_ptr[0], micro_ptr[0], proto_ptr[0]
+    v = _ffi.new("int[4]")
+    _lib.jack_get_version(v+0, v+1, v+2, v+3)
+    return tuple(v)
 
 
 def version_string():
