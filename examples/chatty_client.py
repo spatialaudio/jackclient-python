@@ -89,8 +89,8 @@ def graph_order():
 
 
 @client.set_xrun_callback
-def xrun():
-    print("xrun; delay", client.xrun_delayed_usecs, "microseconds")
+def xrun(delay):
+    print("xrun; delay", delay, "microseconds")
 
 
 print("activating JACK")
