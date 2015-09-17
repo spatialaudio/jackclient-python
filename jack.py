@@ -1281,10 +1281,6 @@ class Client(object):
             The `callback` is supposed to raise :class:`CallbackExit` on
             error.
 
-        See Also
-        --------
-        :attr:`xrun_delayed_usecs`
-
         """
         @self._callback("JackXRunCallback", error=_FAILURE)
         def callback_wrapper(_):
