@@ -484,16 +484,6 @@ class Client(object):
         return _lib.jack_last_frame_time(self._ptr)
 
     @property
-    def xrun_delayed_usecs(self):
-        """Delay in microseconds due to the most recent XRUN occurrence.
-
-        This probably only makes sense when queried from a callback
-        defined using :meth:`set_xrun_callback`.
-
-        """
-        return _lib.jack_get_xrun_delayed_usecs(self._ptr)
-
-    @property
     def inports(self):
         """A list of audio input :class:`Ports`.
 
@@ -1284,8 +1274,10 @@ class Client(object):
             User-supplied function that is called whenever an xrun has
             occured.  It must have this signature::
 
-                callback() -> None
+                callback(delayed_usecs:float) -> None
 
+            The callback argument is the delay in microseconds due to
+            the most recent XRUN occurrence.
             The `callback` is supposed to raise :class:`CallbackExit` on
             error.
 
@@ -1297,7 +1289,7 @@ class Client(object):
         @self._callback("JackXRunCallback", error=_FAILURE)
         def callback_wrapper(_):
             try:
-                callback()
+                callback(_lib.jack_get_xrun_delayed_usecs(self._ptr))
             except CallbackExit:
                 return _FAILURE
             return _SUCCESS
