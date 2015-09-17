@@ -827,7 +827,7 @@ class Client(object):
             User-supplied function that is called whenever the JACK
             daemon is shutdown.  It must have this signature::
 
-                callback(status:Status, reason:str) -> None
+                callback(status: Status, reason: str) -> None
 
             The argument `status` is of type :class:`jack.Status`.
 
@@ -885,7 +885,7 @@ class Client(object):
             User-supplied function that is called by the engine anytime
             there is work to be done.  It must have this signature::
 
-                callback(frames:int) -> None
+                callback(frames: int) -> None
 
             The argument `frames` specifies the number of frames that
             have to be processed in the current audio block. It will be
@@ -933,7 +933,7 @@ class Client(object):
             User-supplied function that is called whenever JACK starts
             or stops freewheeling.  It must have this signature::
 
-                callback(starting:bool) -> None
+                callback(starting: bool) -> None
 
             The argument `starting` is ``True`` if we start to
             freewheel, ``False`` otherwise.
@@ -972,7 +972,7 @@ class Client(object):
             User-supplied function that is invoked whenever the JACK
             engine buffer size changes.  It must have this signature::
 
-                callback(blocksize:int) -> None
+                callback(blocksize: int) -> None
 
             The argument `blocksize` is the new buffer size.
             The `callback` is supposed to raise :class:`CallbackExit` on
@@ -1021,7 +1021,7 @@ class Client(object):
             User-supplied function that is called when the engine sample
             rate changes.  It must have this signature::
 
-                callback(samplerate:int) -> None
+                callback(samplerate: int) -> None
 
             The argument `samplerate` is the new engine sample rate.
             The `callback` is supposed to raise :class:`CallbackExit` on
@@ -1063,7 +1063,7 @@ class Client(object):
             User-supplied function that is called whenever a client is
             registered or unregistered.  It must have this signature::
 
-                callback(name:str, register:bool) -> None
+                callback(name: str, register: bool) -> None
 
             The first argument contains the client name, the second
             argument is ``True`` if the client is being registered and
@@ -1098,7 +1098,7 @@ class Client(object):
             port is registered or unregistered.
             It must have this signature::
 
-                callback(port:Port, register:bool) -> None
+                callback(port: Port, register: bool) -> None
 
             The first argument is a :class:`Port`, :class:`MidiPort`,
             :class:`OwnPort` or :class:`OwnMidiPort` object, the second
@@ -1138,7 +1138,7 @@ class Client(object):
             User-supplied function that is called whenever a port is
             connected or disconnected.  It must have this signature::
 
-                callback(a:Port, b:Port, connect:bool) -> None
+                callback(a: Port, b: Port, connect: bool) -> None
 
             The first and second arguments contain :class:`Port`,
             :class:`MidiPort`, :class:`OwnPort` or :class:`OwnMidiPort`
@@ -1180,7 +1180,7 @@ class Client(object):
             User-supplied function that is called whenever the port name
             has been changed.  It must have this signature::
 
-                callback(port:Port, old:str, new:str) -> None
+                callback(port: Port, old: str, new: str) -> None
 
             The first argument is the port that has been renamed (a
             :class:`Port`, :class:`MidiPort`, :class:`OwnPort` or
@@ -1274,7 +1274,7 @@ class Client(object):
             User-supplied function that is called whenever an xrun has
             occured.  It must have this signature::
 
-                callback(delayed_usecs:float) -> None
+                callback(delayed_usecs: float) -> None
 
             The callback argument is the delay in microseconds due to
             the most recent XRUN occurrence.
@@ -1326,7 +1326,7 @@ class Client(object):
             client had been inactive.
             The `callback` must have this signature::
 
-                callback(state:int, blocksize:int, pos:jack_position_t, new_pos:bool) -> None
+                callback(state: int, blocksize: int, pos: jack_position_t, new_pos: bool) -> None
 
             `state`
                 The current transport state.
@@ -2549,7 +2549,7 @@ def set_error_function(callback=None):
     (which prints the error message plus a newline to stderr).
     The `callback` function must have this signature::
 
-        callback(message:str) -> None
+        callback(message: str) -> None
 
     """
     _set_error_or_info_function(callback, _lib.jack_set_error_function)
@@ -2562,7 +2562,7 @@ def set_info_function(callback=None):
     (which prints the info message plus a newline to stderr).
     The `callback` function must have this signature::
 
-        callback(message:str) -> None
+        callback(message: str) -> None
 
     """
     _set_error_or_info_function(callback, _lib.jack_set_info_function)
