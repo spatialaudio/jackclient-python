@@ -358,18 +358,20 @@ class Client(object):
 
         """
         status = _ffi.new("jack_status_t*")
-        args = [name.encode(), _lib.JackNullOption, status]
+        options = _lib.JackNullOption
+        optargs = []
         if use_exact_name:
-            args[1] |= _lib.JackUseExactName
+            options |= _lib.JackUseExactName
         if no_start_server:
-            args[1] |= _lib.JackNoStartServer
+            options |= _lib.JackNoStartServer
         if servername:
-            args[1] |= _lib.JackServerName
-            args.append(_ffi.new("char[]", servername.encode()))
+            options |= _lib.JackServerName
+            optargs.append(_ffi.new("char[]", servername.encode()))
         if session_id:
-            args[1] |= _lib.JackSessionID
-            args.append(_ffi.new("char[]", session_id.encode()))
-        self._ptr = _lib.jack_client_open(*args)
+            options |= _lib.JackSessionID
+            optargs.append(_ffi.new("char[]", session_id.encode()))
+        self._ptr = _lib.jack_client_open(name.encode(), options, status,
+                                          *optargs)
         self._status = Status(status[0])
         if not self._ptr:
             raise JackError(str(self.status))
