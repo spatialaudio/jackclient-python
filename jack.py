@@ -37,7 +37,7 @@ _ffi.cdef("""
 typedef uint64_t jack_uuid_t;
 typedef uint32_t jack_nframes_t;
 typedef uint64_t jack_time_t;
-typedef jack_uuid_t jack_intclient_t;
+typedef uint64_t jack_intclient_t;
 typedef struct _jack_port jack_port_t;
 typedef struct _jack_client jack_client_t;
 typedef uint32_t jack_port_id_t;
@@ -1524,19 +1524,21 @@ class Client(object):
             :func:`load_init_limit` bytes.
         """
         status = _ffi.new("jack_status_t*")
-        args = [name.encode(), _lib.JackNullOption, status]
+        options = _lib.JackNullOption
+        optargs = []
         if use_exact_name:
-            args[1] |= _lib.JackUseExactName
+            options |= _lib.JackUseExactName
         if load_name:
-            args[1] |= _lib.JackLoadName
-            args.append(_ffi.new("char[]", load_name.encode()))
+            options |= _lib.JackLoadName
+            optargs.append(_ffi.new("char[]", load_name.encode()))
         if load_init:
-            args[1] |= _lib.JackLoadInit
-            args.append(_ffi.new("char[]", load_init.encode()))
-        intclient = _lib.jack_internal_client_load(self._ptr, *args)
-        self._status = Status(status[0])
+            options |= _lib.JackLoadInit
+            optargs.append(_ffi.new("char[]", load_init.encode()))
+        intclient = _lib.jack_internal_client_load(self._ptr, name.encode(), options, status,
+                                                   *optargs)
+        status = Status(status[0])
         if not intclient:
-            raise JackError(str(self.status))
+            raise JackError(str(status))
         return intclient
 
     def internal_client_unload(self, intclient):
