@@ -328,6 +328,11 @@ class Client(object):
                  servername=None, session_id=None):
         """Create a new JACK client.
 
+        A client object is a *context manager*, i.e. it can be used in a
+        *with statement* to automatically call :meth:`activate` in the
+        beginning of the statement and :meth:`deactivate` and
+        :meth:`close` on exit.
+
         Parameters
         ----------
         name : str
@@ -836,7 +841,10 @@ class Client(object):
                After server shutdown, the client is *not*
                deallocated by JACK, the user (that's you!) is
                responsible to properly use :meth:`close` to release
-               client ressources.
+               client ressources.  Alternatively, the :class:`Client`
+               object can be used as a *context manager* in a *with
+               statement*, which takes care of activating, deactivating
+               and closing the client automatically.
 
         """
         @self._callback("JackInfoShutdownCallback")
