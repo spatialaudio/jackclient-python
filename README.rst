@@ -164,12 +164,7 @@ You can even use regular expressions to search for ports:
 
 If you want, you can also set all kinds of callback functions for your client.
 For details see the documentation for the class `jack.Client` and the example
-applications in the ``examples/`` directory.  The methods
-`jack.OwnPort.get_buffer()` and `jack.OwnPort.get_array()` shall only be called
-from within the process callback (see `jack.Client.set_process_callback()`).
-`jack.OwnMidiPort` has a few additional methods which should only be used in
-the process callback.  Have a look at the example applications
-``examples/midi_*.py`` to see how that works.
+applications in the ``examples/`` directory.
 
 Once you are ready to run, you should activate your client:
 

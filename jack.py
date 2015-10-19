@@ -818,11 +818,6 @@ class Client(object):
            help more complex clients understand what is going on.  It
            should be called before :meth:`activate`.
 
-        .. note:: The `callback` should typically signal another thread
-           to correctly finish cleanup by calling :meth:`close` (since
-           :meth:`close` cannot be called directly in the context of the
-           thread that calls the shutdown callback).
-
         Parameters
         ----------
         callback : callable
@@ -833,14 +828,15 @@ class Client(object):
 
             The argument `status` is of type :class:`jack.Status`.
 
-            .. note:: After server shutdown, the client is *not*
+            .. note:: The `callback` should typically signal another
+               thread to correctly finish cleanup by calling
+               :meth:`close` (since it cannot be called directly in the
+               context of the thread that calls the shutdown callback).
+
+               After server shutdown, the client is *not*
                deallocated by JACK, the user (that's you!) is
                responsible to properly use :meth:`close` to release
                client ressources.
-
-            .. warning:: :meth:`close` cannot be safely used inside the
-               shutdown callback and has to be called outside of the
-               callback context.
 
         """
         @self._callback("JackInfoShutdownCallback")
@@ -1810,6 +1806,9 @@ class OwnPort(Port):
         optimization (like "pipelining").  Port buffers have to be
         retrieved in each callback for proper functioning.
 
+        This method shall only be called from within the process
+        callback (see :meth:`Client.set_process_callback`).
+
         """
         blocksize = self._client.blocksize
         return _ffi.buffer(_lib.jack_port_get_buffer(self._ptr, blocksize),
@@ -1820,6 +1819,9 @@ class OwnPort(Port):
 
         Make sure to ``import numpy`` before calling this, otherwise the
         first call might take a long time.
+
+        This method shall only be called from within the process
+        callback (see :meth:`Client.set_process_callback`).
 
         See Also
         --------
@@ -1838,7 +1840,7 @@ class OwnMidiPort(MidiPort, OwnPort):
     which are themselves derived from :class:`Port`.  It has the same
     attributes and methods as :class:`OwnPort`, but :meth:`get_buffer`
     and :meth:`get_array` are disabled.  Instead, it has methods for
-    sending and receiving MIDI events (to be used from within the
+    sending and receiving MIDI events (to be used only from within the
     process callback -- see :meth:`Client.set_process_callback`).
 
     This class cannot be instantiated directly (see :class:`Port`).
