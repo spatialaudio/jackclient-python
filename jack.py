@@ -846,6 +846,9 @@ class Client(object):
                statement*, which takes care of activating, deactivating
                and closing the client automatically.
 
+            .. note:: Same as with most callbacks, no functions that
+               interact with the JACK daemon should be used here.
+
         """
         @self._callback("JackInfoShutdownCallback")
         def callback_wrapper(code, reason, _):
@@ -944,6 +947,9 @@ class Client(object):
             The argument `starting` is ``True`` if we start to
             freewheel, ``False`` otherwise.
 
+            .. note:: Same as with most callbacks, no functions that
+               interact with the JACK daemon should be used here.
+
         See Also
         --------
         set_freewheel
@@ -991,6 +997,9 @@ class Client(object):
                previously referenced, and perform other operations that
                are not realtime safe.
 
+            .. note:: Same as with most callbacks, no functions that
+               interact with the JACK daemon should be used here.
+
         See Also
         --------
         :attr:`blocksize`
@@ -1032,6 +1041,9 @@ class Client(object):
             The argument `samplerate` is the new engine sample rate.
             The `callback` is supposed to raise :class:`CallbackExit` on
             error.
+
+            .. note:: Same as with most callbacks, no functions that
+               interact with the JACK daemon should be used here.
 
         See Also
         --------
@@ -1075,6 +1087,9 @@ class Client(object):
             argument is ``True`` if the client is being registered and
             ``False`` if the client is being unregistered.
 
+            .. note:: Same as with most callbacks, no functions that
+               interact with the JACK daemon should be used here.
+
         """
         @self._callback("JackClientRegistrationCallback")
         def callback_wrapper(name, register, _):
@@ -1110,6 +1125,9 @@ class Client(object):
             :class:`OwnPort` or :class:`OwnMidiPort` object, the second
             argument is ``True`` if the port is being registered,
             ``False`` if the port is being unregistered.
+
+            .. note:: Same as with most callbacks, no functions that
+               interact with the JACK daemon should be used here.
 
         See Also
         --------
@@ -1151,6 +1169,9 @@ class Client(object):
             objects of the ports which are connected or disconnected.
             The third argument is ``True`` if the ports were connected
             and ``False`` if the ports were disconnected.
+
+            .. note:: Same as with most callbacks, no functions that
+               interact with the JACK daemon should be used here.
 
         See Also
         --------
@@ -1194,6 +1215,9 @@ class Client(object):
             is the old and new name, respectively.
             The `callback` is supposed to raise :class:`CallbackExit` on
             error.
+
+            .. note:: Same as with most callbacks, no functions that
+               interact with the JACK daemon should be used here.
 
         See Also
         --------
@@ -1248,6 +1272,9 @@ class Client(object):
             The `callback` is supposed to raise :class:`CallbackExit` on
             error.
 
+            .. note:: Same as with most callbacks, no functions that
+               interact with the JACK daemon should be used here.
+
         """
         @self._callback("JackGraphOrderCallback", error=_FAILURE)
         def callback_wrapper(_):
@@ -1286,6 +1313,9 @@ class Client(object):
             the most recent XRUN occurrence.
             The `callback` is supposed to raise :class:`CallbackExit` on
             error.
+
+            .. note:: Same as with most callbacks, no functions that
+               interact with the JACK daemon should be used here.
 
         """
         @self._callback("JackXRunCallback", error=_FAILURE)
