@@ -321,7 +321,6 @@ _FAILURE = 1
 
 
 class Client(object):
-
     """A client that can connect to the JACK audio server."""
 
     def __init__(self, name, use_exact_name=False, no_start_server=False,
@@ -1571,7 +1570,6 @@ class Client(object):
 
 
 class Port(object):
-
     """A JACK audio port.
 
     This class cannot be instantiated directly.  Instead, instances of
@@ -1691,7 +1689,6 @@ class Port(object):
 
 
 class MidiPort(Port):
-
     """A JACK MIDI port.
 
     This class is derived from :class:`Port` and has exactly the same
@@ -1715,7 +1712,6 @@ class MidiPort(Port):
 
 
 class OwnPort(Port):
-
     """A JACK audio port owned by a :class:`Client` object.
 
     This class is derived from :class:`Port`.  :class:`OwnPort` objects
@@ -1871,7 +1867,6 @@ class OwnPort(Port):
 
 
 class OwnMidiPort(MidiPort, OwnPort):
-
     """A JACK MIDI port owned by a :class:`Client` object.
 
     This class is derived from :class:`OwnPort` and :class:`MidiPort`,
@@ -2034,7 +2029,6 @@ class OwnMidiPort(MidiPort, OwnPort):
 
 
 class Ports(object):
-
     """A list of input/output ports.
 
     This class is not meant to be instantiated directly.  It is only
@@ -2126,7 +2120,6 @@ class Ports(object):
 
 
 class RingBuffer(object):
-
     """JACK's lock-free ringbuffer."""
 
     def __init__(self, size):
@@ -2375,7 +2368,6 @@ class RingBuffer(object):
 
 
 class Status(object):
-
     """Representation of the JACK status bits."""
 
     __slots__ = '_code'
@@ -2475,7 +2467,6 @@ class Status(object):
 
 
 class TransportState(object):
-
     """Representation of the JACK transport state.
 
     See Also
@@ -2502,14 +2493,12 @@ class TransportState(object):
 
 
 class JackError(Exception):
-
     """Exception for all kinds of JACK-related errors."""
 
     pass
 
 
 class CallbackExit(Exception):
-
     """To be raised in a callback function to signal failure.
 
     See Also

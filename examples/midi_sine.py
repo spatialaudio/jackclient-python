@@ -53,6 +53,7 @@ def m2f(note):
 
 
 class Voice:
+
     def __init__(self, pitch):
         self.time = 0
         self.time_increment = m2f(pitch) / fs
