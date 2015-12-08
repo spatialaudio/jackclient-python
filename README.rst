@@ -12,6 +12,9 @@ Code:
 Python Package Index:
    http://pypi.python.org/pypi/JACK-Client/
 
+License:
+   MIT -- see the file ``LICENSE`` for details.
+
 Requirements
 ------------
 
