@@ -59,7 +59,8 @@ NumPy (optional):
    The only place where NumPy is needed is `jack.OwnPort.get_array()`.
    If you need NumPy, you should install it with your package manager or use a
    Python distribution that already includes NumPy (see above).
-   Installing NumPy with pip is not recommended.
+   Installing NumPy with pip requires a compiler and several additional
+   libraries and is therefore not recommended for beginners.
 
 .. _JACK: http://jackaudio.org/
 .. _NumPy: http://www.numpy.org/
