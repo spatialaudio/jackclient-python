@@ -239,10 +239,10 @@ size_t jack_ringbuffer_write_space(const jack_ringbuffer_t* rb);
 /* TODO: jack_set_sync_callback */
 /* TODO: jack_set_sync_timeout */
 int jack_set_timebase_callback(jack_client_t* client, int conditional, JackTimebaseCallback timebase_callback, void* arg);
-int  jack_transport_locate(jack_client_t* client, jack_nframes_t frame);
+int jack_transport_locate(jack_client_t* client, jack_nframes_t frame);
 jack_transport_state_t jack_transport_query(const jack_client_t* client, jack_position_t* pos);
 jack_nframes_t jack_get_current_transport_frame(const jack_client_t* client);
-/* TODO: jack_transport_reposition */
+int jack_transport_reposition(jack_client_t* client, const jack_position_t* pos);
 void jack_transport_start(jack_client_t* client);
 void jack_transport_stop(jack_client_t* client);
 /* deprecated: jack_get_transport_info */
