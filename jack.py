@@ -28,6 +28,7 @@ __version__ = "0.4.0"
 import errno as _errno
 import platform as _platform
 from cffi import FFI as _FFI
+import warnings as _warnings
 
 _ffi = _FFI()
 _ffi.cdef("""
@@ -685,17 +686,33 @@ class Client(object):
         """
         return TransportState(_lib.jack_transport_query(self._ptr, _ffi.NULL))
 
-    def transport_locate(self, frame):
-        """Reposition the JACK transport to a new frame number.
+    @property
+    def transport_frame(self):
+        """Get/set current JACK transport frame.
 
-        Parameters
-        ----------
-        frame : int
-            Frame number.
+        Return an estimate of the current transport frame, including any
+        time elapsed since the last transport positional update.
+        Assigning a frame number repositions the JACK transport.
 
         """
+        return _lib.jack_get_current_transport_frame(self._ptr)
+
+    @transport_frame.setter
+    def transport_frame(self, frame):
         _check(_lib.jack_transport_locate(self._ptr, frame),
                "Error locating JACK transport")
+
+    def transport_locate(self, frame):
+        """
+
+        .. deprecated:: 0.4.1
+            Use :attr:`transport_frame` instead
+
+        """
+        _warnings.warn(
+            'transport_locate() is deprecated, use transport_frame',
+            DeprecationWarning)
+        self.transport_frame = frame
 
     def transport_query(self):
         """Query the current transport state and position.
