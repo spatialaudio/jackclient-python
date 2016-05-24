@@ -1,3 +1,7 @@
+Version 0.4.1 (2016-05-24):
+ * new property `jack.Client.transport_frame`, deprecating
+   `jack.Client.transport_locate()`
+
 Version 0.4.0 (2015-09-17):
  * new argument to xrun callback (see `jack.Client.set_xrun_callback()`),
    `jack.Client.xrun_delayed_usecs` was removed
