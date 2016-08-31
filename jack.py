@@ -25,9 +25,9 @@ http://jackclient-python.rtfd.org/
 """
 __version__ = "0.4.1"
 
+from cffi import FFI as _FFI
 import errno as _errno
 import platform as _platform
-from cffi import FFI as _FFI
 import warnings as _warnings
 
 _ffi = _FFI()
