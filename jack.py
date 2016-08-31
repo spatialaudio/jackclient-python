@@ -1115,7 +1115,8 @@ class Client(object):
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting client registration callback")
 
-    def set_port_registration_callback(self, callback):
+    def set_port_registration_callback(self, callback=None,
+                                       only_available=True):
         """Register port registration callback.
 
         Tell the JACK server to call `callback` whenever a port is
@@ -1144,22 +1145,39 @@ class Client(object):
 
             .. note:: Same as with most callbacks, no functions that
                interact with the JACK daemon should be used here.
+        only_available : bool, optional
+            If ``True``, the *callback* is not called if the port in
+            question is not available anymore (after another JACK client
+            has unregistered it).
+            If ``False``, it is called nonetheless, but the first
+            argument of the *callback* will be ``None`` if the port is
+            not available anymore.
 
         See Also
         --------
         Ports.register
 
         """
+        if callback is None:
+            return lambda cb: self.set_port_registration_callback(
+                cb, only_available)
+
         @self._callback("JackPortRegistrationCallback")
-        def callback_wrapper(port, register, _):
-            port = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, port))
+        def callback_wrapper(port_id, register, _):
+            port_ptr = _lib.jack_port_by_id(self._ptr, port_id)
+            if port_ptr:
+                port = self._wrap_port_ptr(port_ptr)
+            elif only_available:
+                return
+            else:
+                port = None
             callback(port, bool(register))
 
         _check(_lib.jack_set_port_registration_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting port registration callback")
 
-    def set_port_connect_callback(self, callback):
+    def set_port_connect_callback(self, callback=None, only_available=True):
         """Register port connect callback.
 
         Tell the JACK server to call `callback` whenever a port is
@@ -1188,23 +1206,39 @@ class Client(object):
 
             .. note:: Same as with most callbacks, no functions that
                interact with the JACK daemon should be used here.
+        only_available : bool, optional
+            See :func:`set_port_registration_callback`.
+            If ``False``, the first and/or the second argument to the
+            *callback* may be ``None``.
 
         See Also
         --------
         Client.connect, OwnPort.connect
 
         """
+        if callback is None:
+            return lambda cb: self.set_port_connect_callback(
+                cb, only_available)
+
         @self._callback("JackPortConnectCallback")
         def callback_wrapper(a, b, connect, _):
-            a = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, a))
-            b = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, b))
-            callback(a, b, bool(connect))
+            port_ids = a, b
+            ports = [None, None]
+            for idx in 0, 1:
+                ptr = _lib.jack_port_by_id(self._ptr, port_ids[idx])
+                if ptr:
+                    ports[idx] = self._wrap_port_ptr(ptr)
+                elif only_available:
+                    return
+                else:
+                    pass  # Do nothing, port is already None
+            callback(ports[0], ports[1], bool(connect))
 
         _check(_lib.jack_set_port_connect_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             "Error setting port connect callback")
 
-    def set_port_rename_callback(self, callback):
+    def set_port_rename_callback(self, callback=None, only_available=True):
         """Register port rename callback.
 
         Tell the JACK server to call `callback` whenever a port is
@@ -1234,6 +1268,8 @@ class Client(object):
 
             .. note:: Same as with most callbacks, no functions that
                interact with the JACK daemon should be used here.
+        only_available : bool, optional
+            See :func:`set_port_registration_callback`.
 
         See Also
         --------
@@ -1249,9 +1285,18 @@ class Client(object):
            94c819accfab2612050e875c24cf325daa0fd26d
 
         """
+        if callback is None:
+            return lambda cb: self.set_port_rename_callback(cb, only_available)
+
         @self._callback("JackPortRenameCallback", error=_FAILURE)
-        def callback_wrapper(port, old_name, new_name, _):
-            port = self._wrap_port_ptr(_lib.jack_port_by_id(self._ptr, port))
+        def callback_wrapper(port_id, old_name, new_name, _):
+            port_ptr = _lib.jack_port_by_id(self._ptr, port_id)
+            if port_ptr:
+                port = self._wrap_port_ptr(port_ptr)
+            elif only_available:
+                return
+            else:
+                port = None
             try:
                 callback(port, _ffi.string(old_name).decode(),
                          _ffi.string(new_name).decode())
