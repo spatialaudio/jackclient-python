@@ -15,9 +15,9 @@ NOTEOFF = 0x8
 
 INTERVALS = 3, 7  # minor triad
 
-client = jack.Client("MIDI-Chord-Generator")
-inport = client.midi_inports.register("input")
-outport = client.midi_outports.register("output")
+client = jack.Client('MIDI-Chord-Generator')
+inport = client.midi_inports.register('input')
+outport = client.midi_outports.register('output')
 
 
 @client.set_process_callback
@@ -34,7 +34,7 @@ def process(frames):
                     outport.write_midi_event(offset, (status, pitch + i, vel))
 
 with client:
-    print("#" * 80)
-    print("press Return to quit")
-    print("#" * 80)
+    print('#' * 80)
+    print('press Return to quit')
+    print('#' * 80)
     input()

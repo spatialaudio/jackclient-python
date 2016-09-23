@@ -37,9 +37,9 @@ release = 0.2  # seconds
 fs = None
 voices = {}
 
-client = jack.Client("MIDI-Sine")
-midiport = client.midi_inports.register("midi_in")
-audioport = client.outports.register("audio_out")
+client = jack.Client('MIDI-Sine')
+midiport = client.midi_inports.register('midi_in')
+audioport = client.outports.register('audio_out')
 event = threading.Event()
 
 
@@ -134,13 +134,13 @@ def samplerate(samplerate):
 
 @client.set_shutdown_callback
 def shutdown(status, reason):
-    print("JACK shutdown:", reason, status)
+    print('JACK shutdown:', reason, status)
     event.set()
 
 
 with client:
-    print("Press Ctrl+C to stop")
+    print('Press Ctrl+C to stop')
     try:
         event.wait()
     except KeyboardInterrupt:
-        print("\nInterrupted by user")
+        print('\nInterrupted by user')

@@ -34,9 +34,9 @@ servername = next(argv, None)
 client = jack.Client(clientname, servername=servername)
 
 if client.status.server_started:
-    print("JACK server started")
+    print('JACK server started')
 if client.status.name_not_unique:
-    print("unique name {0!r} assigned".format(client.name))
+    print('unique name {0!r} assigned'.format(client.name))
 
 event = threading.Event()
 
@@ -51,16 +51,16 @@ def process(frames):
 
 @client.set_shutdown_callback
 def shutdown(status, reason):
-    print("JACK shutdown!")
-    print("status:", status)
-    print("reason:", reason)
+    print('JACK shutdown!')
+    print('status:', status)
+    print('reason:', reason)
     event.set()
 
 
 # create two port pairs
 for number in 1, 2:
-    client.inports.register("input_{0}".format(number))
-    client.outports.register("output_{0}".format(number))
+    client.inports.register('input_{0}'.format(number))
+    client.outports.register('output_{0}'.format(number))
 
 with client:
     # When entering this with-statement, client.activate() is called.
@@ -75,23 +75,23 @@ with client:
 
     capture = client.get_ports(is_physical=True, is_output=True)
     if not capture:
-        raise RuntimeError("No physical capture ports")
+        raise RuntimeError('No physical capture ports')
 
     for src, dest in zip(capture, client.inports):
         client.connect(src, dest)
 
     playback = client.get_ports(is_physical=True, is_input=True)
     if not playback:
-        raise RuntimeError("No physical playback ports")
+        raise RuntimeError('No physical playback ports')
 
     for src, dest in zip(client.outports, playback):
         client.connect(src, dest)
 
-    print("Press Ctrl+C to stop")
+    print('Press Ctrl+C to stop')
     try:
         event.wait()
     except KeyboardInterrupt:
-        print("\nInterrupted by user")
+        print('\nInterrupted by user')
 
 # When the above with-statement is left (either because the end of the
 # code block is reached, or because an exception was raised inside),

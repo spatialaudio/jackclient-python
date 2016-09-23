@@ -23,7 +23,7 @@
 http://jackclient-python.rtfd.org/
 
 """
-__version__ = "0.4.1"
+__version__ = '0.4.1'
 
 from cffi import FFI as _FFI
 import errno as _errno
@@ -299,14 +299,14 @@ struct _jack_position {
 
 if _platform.system() == 'Windows':
     if _platform.architecture()[0] == '64bit':
-        _lib = _ffi.dlopen("libjack64")
+        _lib = _ffi.dlopen('libjack64')
     else:
-        _lib = _ffi.dlopen("libjack")
+        _lib = _ffi.dlopen('libjack')
 else:
-    _lib = _ffi.dlopen("jack")
+    _lib = _ffi.dlopen('jack')
 
-_AUDIO = b"32 bit float mono audio"
-_MIDI = b"8 bit raw midi"
+_AUDIO = b'32 bit float mono audio'
+_MIDI = b'8 bit raw midi'
 
 STOPPED = _lib.JackTransportStopped
 """Transport halted."""
@@ -355,14 +355,14 @@ class Client(object):
             Selects from among several possible concurrent server
             instances.
             Server names are unique to each user.  If unspecified, use
-            ``"default"`` unless ``JACK_DEFAULT_SERVER`` is defined in
+            ``'default'`` unless ``JACK_DEFAULT_SERVER`` is defined in
             the process environment.
         session_id : str
             Pass a SessionID Token. This allows the sessionmanager to
             identify the client again.
 
         """
-        status = _ffi.new("jack_status_t*")
+        status = _ffi.new('jack_status_t*')
         options = _lib.JackNullOption
         optargs = []
         if use_exact_name:
@@ -371,10 +371,10 @@ class Client(object):
             options |= _lib.JackNoStartServer
         if servername:
             options |= _lib.JackServerName
-            optargs.append(_ffi.new("char[]", servername.encode()))
+            optargs.append(_ffi.new('char[]', servername.encode()))
         if session_id:
             options |= _lib.JackSessionID
-            optargs.append(_ffi.new("char[]", session_id.encode()))
+            optargs.append(_ffi.new('char[]', session_id.encode()))
         self._ptr = _lib.jack_client_open(name.encode(), options, status,
                                           *optargs)
         self._status = Status(status[0])
@@ -386,7 +386,7 @@ class Client(object):
         self._midi_inports = Ports(self, _MIDI, _lib.JackPortIsInput)
         self._midi_outports = Ports(self, _MIDI, _lib.JackPortIsOutput)
         self._keepalive = []
-        self._position = _ffi.new("jack_position_t*")
+        self._position = _ffi.new('jack_position_t*')
 
     # Avoid confusion if something goes wrong before opening the client:
     _ptr = _ffi.NULL
@@ -435,7 +435,7 @@ class Client(object):
     @blocksize.setter
     def blocksize(self, blocksize):
         _check(_lib.jack_set_buffer_size(self._ptr, blocksize),
-               "Error setting JACK blocksize")
+               'Error setting JACK blocksize')
 
     @property
     def status(self):
@@ -582,7 +582,7 @@ class Client(object):
         processing audio.
 
         """
-        _check(_lib.jack_activate(self._ptr), "Error activating JACK client")
+        _check(_lib.jack_activate(self._ptr), 'Error activating JACK client')
 
     def deactivate(self, ignore_errors=True):
         """De-activate JACK client.
@@ -594,7 +594,7 @@ class Client(object):
         """
         err = _lib.jack_deactivate(self._ptr)
         if not ignore_errors:
-            _check(err, "Error deactivating JACK client")
+            _check(err, 'Error deactivating JACK client')
 
     def cpu_load(self):
         """Return the current CPU load estimated by JACK.
@@ -613,7 +613,7 @@ class Client(object):
             err = _lib.jack_client_close(self._ptr)
             self._ptr = _ffi.NULL
             if not ignore_errors:
-                _check(err, "Error closing JACK client")
+                _check(err, 'Error closing JACK client')
 
     def connect(self, source, destination):
         """Establish a connection between two ports.
@@ -642,10 +642,10 @@ class Client(object):
         err = _lib.jack_connect(self._ptr, source.encode(),
                                 destination.encode())
         if err == _errno.EEXIST:
-            raise JackError("Connection {0!r} -> {1!r} "
-                            "already exists".format(source, destination))
+            raise JackError('Connection {0!r} -> {1!r} '
+                            'already exists'.format(source, destination))
         _check(err,
-               "Error connecting {0!r} -> {1!r}".format(source, destination))
+               'Error connecting {0!r} -> {1!r}'.format(source, destination))
 
     def disconnect(self, source, destination):
         """Remove a connection between two ports.
@@ -700,7 +700,7 @@ class Client(object):
     @transport_frame.setter
     def transport_frame(self, frame):
         _check(_lib.jack_transport_locate(self._ptr, frame),
-               "Error locating JACK transport")
+               'Error locating JACK transport')
 
     def transport_locate(self, frame):
         """
@@ -790,7 +790,7 @@ class Client(object):
 
         """
         _check(_lib.jack_transport_reposition(self._ptr, position),
-               "Error re-positioning transport")
+               'Error re-positioning transport')
 
     def set_freewheel(self, onoff):
         """Start/Stop JACK's "freewheel" mode.
@@ -821,7 +821,7 @@ class Client(object):
 
         """
         _check(_lib.jack_set_freewheel(self._ptr, onoff),
-               "Error setting freewheel mode")
+               'Error setting freewheel mode')
 
     def set_shutdown_callback(self, callback):
         """Register shutdown callback.
@@ -866,7 +866,7 @@ class Client(object):
                interact with the JACK daemon should be used here.
 
         """
-        @self._callback("JackInfoShutdownCallback")
+        @self._callback('JackInfoShutdownCallback')
         def callback_wrapper(code, reason, _):
             callback(Status(code), _ffi.string(reason).decode())
 
@@ -925,7 +925,7 @@ class Client(object):
             exceptions will print an error message to *stderr*.
 
         """
-        @self._callback("JackProcessCallback", error=_FAILURE)
+        @self._callback('JackProcessCallback', error=_FAILURE)
         def callback_wrapper(frames, _):
             try:
                 callback(frames)
@@ -935,7 +935,7 @@ class Client(object):
 
         _check(_lib.jack_set_process_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
-            "Error setting process callback")
+            'Error setting process callback')
 
     def set_freewheel_callback(self, callback):
         """Register freewheel callback.
@@ -971,13 +971,13 @@ class Client(object):
         set_freewheel
 
         """
-        @self._callback("JackFreewheelCallback")
+        @self._callback('JackFreewheelCallback')
         def callback_wrapper(starting, _):
             callback(bool(starting))
 
         _check(_lib.jack_set_freewheel_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
-            "Error setting freewheel callback")
+            'Error setting freewheel callback')
 
     def set_blocksize_callback(self, callback):
         """Register blocksize callback.
@@ -1021,7 +1021,7 @@ class Client(object):
         :attr:`blocksize`
 
         """
-        @self._callback("JackBufferSizeCallback", error=_FAILURE)
+        @self._callback('JackBufferSizeCallback', error=_FAILURE)
         def callback_wrapper(blocksize, _):
             try:
                 callback(blocksize)
@@ -1031,7 +1031,7 @@ class Client(object):
 
         _check(_lib.jack_set_buffer_size_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
-            "Error setting blocksize callback")
+            'Error setting blocksize callback')
 
     def set_samplerate_callback(self, callback):
         """Register samplerate callback.
@@ -1066,7 +1066,7 @@ class Client(object):
         :attr:`samplerate`
 
         """
-        @self._callback("JackSampleRateCallback", error=_FAILURE)
+        @self._callback('JackSampleRateCallback', error=_FAILURE)
         def callback_wrapper(samplerate, _):
             try:
                 callback(samplerate)
@@ -1076,7 +1076,7 @@ class Client(object):
 
         _check(_lib.jack_set_sample_rate_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
-            "Error setting samplerate callback")
+            'Error setting samplerate callback')
 
     def set_client_registration_callback(self, callback):
         """Register client registration callback.
@@ -1107,13 +1107,13 @@ class Client(object):
                interact with the JACK daemon should be used here.
 
         """
-        @self._callback("JackClientRegistrationCallback")
+        @self._callback('JackClientRegistrationCallback')
         def callback_wrapper(name, register, _):
             callback(_ffi.string(name).decode(), bool(register))
 
         _check(_lib.jack_set_client_registration_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
-            "Error setting client registration callback")
+            'Error setting client registration callback')
 
     def set_port_registration_callback(self, callback=None,
                                        only_available=True):
@@ -1161,7 +1161,7 @@ class Client(object):
             return lambda cb: self.set_port_registration_callback(
                 cb, only_available)
 
-        @self._callback("JackPortRegistrationCallback")
+        @self._callback('JackPortRegistrationCallback')
         def callback_wrapper(port_id, register, _):
             port_ptr = _lib.jack_port_by_id(self._ptr, port_id)
             if port_ptr:
@@ -1174,7 +1174,7 @@ class Client(object):
 
         _check(_lib.jack_set_port_registration_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
-            "Error setting port registration callback")
+            'Error setting port registration callback')
 
     def set_port_connect_callback(self, callback=None, only_available=True):
         """Register port connect callback.
@@ -1219,7 +1219,7 @@ class Client(object):
             return lambda cb: self.set_port_connect_callback(
                 cb, only_available)
 
-        @self._callback("JackPortConnectCallback")
+        @self._callback('JackPortConnectCallback')
         def callback_wrapper(a, b, connect, _):
             port_ids = a, b
             ports = [None, None]
@@ -1235,7 +1235,7 @@ class Client(object):
 
         _check(_lib.jack_set_port_connect_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
-            "Error setting port connect callback")
+            'Error setting port connect callback')
 
     def set_port_rename_callback(self, callback=None, only_available=True):
         """Register port rename callback.
@@ -1287,7 +1287,7 @@ class Client(object):
         if callback is None:
             return lambda cb: self.set_port_rename_callback(cb, only_available)
 
-        @self._callback("JackPortRenameCallback", error=_FAILURE)
+        @self._callback('JackPortRenameCallback', error=_FAILURE)
         def callback_wrapper(port_id, old_name, new_name, _):
             port_ptr = _lib.jack_port_by_id(self._ptr, port_id)
             if port_ptr:
@@ -1305,7 +1305,7 @@ class Client(object):
 
         _check(_lib.jack_set_port_rename_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
-            "Error setting port rename callback")
+            'Error setting port rename callback')
 
     def set_graph_order_callback(self, callback):
         """Register graph order callback.
@@ -1336,7 +1336,7 @@ class Client(object):
                interact with the JACK daemon should be used here.
 
         """
-        @self._callback("JackGraphOrderCallback", error=_FAILURE)
+        @self._callback('JackGraphOrderCallback', error=_FAILURE)
         def callback_wrapper(_):
             try:
                 callback()
@@ -1346,7 +1346,7 @@ class Client(object):
 
         _check(_lib.jack_set_graph_order_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
-            "Error setting graph order callback")
+            'Error setting graph order callback')
 
     def set_xrun_callback(self, callback):
         """Register xrun callback.
@@ -1378,7 +1378,7 @@ class Client(object):
                interact with the JACK daemon should be used here.
 
         """
-        @self._callback("JackXRunCallback", error=_FAILURE)
+        @self._callback('JackXRunCallback', error=_FAILURE)
         def callback_wrapper(_):
             try:
                 callback(_lib.jack_get_xrun_delayed_usecs(self._ptr))
@@ -1388,7 +1388,7 @@ class Client(object):
 
         _check(_lib.jack_set_xrun_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
-            "Error setting xrun callback")
+            'Error setting xrun callback')
 
     def set_timebase_callback(self, callback=None, conditional=False):
         """Register as timebase master for the JACK subsystem.
@@ -1459,7 +1459,7 @@ class Client(object):
         if callback is None:
             return lambda cb: self.set_timebase_callback(cb, conditional)
 
-        @self._callback("JackTimebaseCallback")
+        @self._callback('JackTimebaseCallback')
         def callback_wrapper(state, blocksize, pos, new_pos, _):
             callback(state, blocksize, pos, bool(new_pos))
 
@@ -1470,7 +1470,7 @@ class Client(object):
         # See https://github.com/jackaudio/jack2/pull/123
         if conditional and err in (_errno.EBUSY, -1):
             return False
-        _check(err, "Error setting timebase callback")
+        _check(err, 'Error setting timebase callback')
         return True
 
     def get_uuid_for_client_name(self, name):
@@ -1483,7 +1483,7 @@ class Client(object):
         uuid = _ffi.gc(_lib.jack_get_uuid_for_client_name(
             self._ptr, name.encode()), _lib.jack_free)
         if not uuid:
-            raise JackError("Unable to get session ID for {0!r}".format(name))
+            raise JackError('Unable to get session ID for {0!r}'.format(name))
         return _ffi.string(uuid).decode()
 
     def get_client_name_by_uuid(self, uuid):
@@ -1496,7 +1496,7 @@ class Client(object):
         name = _ffi.gc(_lib.jack_get_client_name_by_uuid(
             self._ptr, uuid.encode()), _lib.jack_free)
         if not name:
-            raise JackError("Unable to get client name for {0!r}".format(uuid))
+            raise JackError('Unable to get client name for {0!r}'.format(uuid))
         return _ffi.string(name).decode()
 
     def get_port_by_name(self, name):
@@ -1509,7 +1509,7 @@ class Client(object):
         """
         port_ptr = _lib.jack_port_by_name(self._ptr, name.encode())
         if not port_ptr:
-            raise JackError("Port {0!r} not available".format(name))
+            raise JackError('Port {0!r} not available'.format(name))
         return self._wrap_port_ptr(port_ptr)
 
     def get_all_connections(self, port):
@@ -1594,7 +1594,7 @@ class Client(object):
                                            flags, 0)
         if not port_ptr:
             raise JackError(
-                "{0!r}: port registration failed".format(name))
+                '{0!r}: port registration failed'.format(name))
         return self._wrap_port_ptr(port_ptr)
 
     def _port_list_from_pointers(self, names):
@@ -1693,15 +1693,15 @@ class Port(object):
     @shortname.setter
     def shortname(self, shortname):
         _check(_lib.jack_port_set_name(self._ptr, shortname.encode()),
-               "Error setting port name")
+               'Error setting port name')
 
     @property
     def uuid(self):
         """The UUID of the JACK port."""
         return _lib.jack_port_uuid(self._ptr)
 
-    is_audio = property(lambda self: True, doc="This is always ``True``.")
-    is_midi = property(lambda self: False, doc="This is always ``False``.")
+    is_audio = property(lambda self: True, doc='This is always ``True``.')
+    is_midi = property(lambda self: False, doc='This is always ``False``.')
 
     @property
     def is_input(self):
@@ -1742,7 +1742,7 @@ class Port(object):
 
         """
         _check(_lib.jack_port_request_monitor(self._ptr, onoff),
-               "Unable to switch monitoring on/off")
+               'Unable to switch monitoring on/off')
 
     def _hasflag(self, flag):
         """Helper method for is_*()."""
@@ -1768,8 +1768,8 @@ class MidiPort(Port):
 
     """
 
-    is_audio = property(lambda self: False, doc="This is always ``False``.")
-    is_midi = property(lambda self: True, doc="This is always ``True``.")
+    is_audio = property(lambda self: False, doc='This is always ``False``.')
+    is_midi = property(lambda self: True, doc='This is always ``True``.')
 
 
 class OwnPort(Port):
@@ -1834,12 +1834,12 @@ class OwnPort(Port):
         if self.is_output:
             source = self
             if not port.is_input:
-                raise ValueError("Input port expected")
+                raise ValueError('Input port expected')
             destination = port
         elif self.is_input:
             destination = self
             if not port.is_output:
-                raise ValueError("Output port expected")
+                raise ValueError('Output port expected')
             source = port
         else:
             assert False
@@ -1857,7 +1857,7 @@ class OwnPort(Port):
         """
         if other is None:
             _check(_lib.jack_port_disconnect(self._client._ptr, self._ptr),
-                   "Error disconnecting {0!r}".format(self.name))
+                   'Error disconnecting {0!r}'.format(self.name))
         else:
             if self.is_output:
                 args = self, other
@@ -1875,17 +1875,17 @@ class OwnPort(Port):
 
         """
         if self.is_audio:
-            listname = ""
+            listname = ''
         elif self.is_midi:
-            listname = "midi_"
+            listname = 'midi_'
         if self.is_input:
-            listname += "inports"
+            listname += 'inports'
         elif self.is_output:
-            listname += "outports"
+            listname += 'outports'
         ports = getattr(self._client, listname)
         ports._portlist.remove(self)
         _check(_lib.jack_port_unregister(self._client._ptr, self._ptr),
-               "Error unregistering {0!r}".format(self.name))
+               'Error unregistering {0!r}'.format(self.name))
 
     def get_buffer(self):
         """Get buffer for audio data.
@@ -1907,7 +1907,7 @@ class OwnPort(Port):
         """
         blocksize = self._client.blocksize
         return _ffi.buffer(_lib.jack_port_get_buffer(self._ptr, blocksize),
-                           blocksize * _ffi.sizeof("float"))
+                           blocksize * _ffi.sizeof('float'))
 
     def get_array(self):
         """Get audio buffer as NumPy array.
@@ -1948,15 +1948,15 @@ class OwnMidiPort(MidiPort, OwnPort):
 
     def __init__(self, *args, **kwargs):
         OwnPort.__init__(self, *args, **kwargs)
-        self._event = _ffi.new("jack_midi_event_t*")
+        self._event = _ffi.new('jack_midi_event_t*')
 
     def get_buffer(self):
         """Not available for MIDI ports."""
-        raise NotImplementedError("get_buffer() not available on MIDI ports")
+        raise NotImplementedError('get_buffer() not available on MIDI ports')
 
     def get_array(self):
         """Not available for MIDI ports."""
-        raise NotImplementedError("get_array() not available on MIDI ports")
+        raise NotImplementedError('get_array() not available on MIDI ports')
 
     @property
     def max_event_size(self):
@@ -2054,7 +2054,7 @@ class OwnMidiPort(MidiPort, OwnPort):
             pass  # input is not a buffer
         _check(_lib.jack_midi_event_write(
             _lib.jack_port_get_buffer(self._ptr, self._client.blocksize),
-            time, event, len(event)), "Error writing MIDI event")
+            time, event, len(event)), 'Error writing MIDI event')
 
     def reserve_midi_event(self, time, size):
         """Get a buffer where an outgoing MIDI event can be written to.
@@ -2209,7 +2209,7 @@ class RingBuffer(object):
         """
         ptr = _lib.jack_ringbuffer_create(size)
         if not ptr:
-            raise JackError("Could not create RingBuffer")
+            raise JackError('Could not create RingBuffer')
         self._ptr = _ffi.gc(ptr, _lib.jack_ringbuffer_free)
 
     @property
@@ -2264,7 +2264,7 @@ class RingBuffer(object):
            again to get new ones.
 
         """
-        vectors = _ffi.new("jack_ringbuffer_data_t[2]")
+        vectors = _ffi.new('jack_ringbuffer_data_t[2]')
         _lib.jack_ringbuffer_get_write_vector(self._ptr, vectors)
         return (
             _ffi.buffer(vectors[0].buf, vectors[0].len),
@@ -2311,7 +2311,7 @@ class RingBuffer(object):
         peek, :attr:`read_space`, :attr:`read_buffers`
 
         """
-        data = _ffi.new("unsigned char[]", size)
+        data = _ffi.new('unsigned char[]', size)
         size = _lib.jack_ringbuffer_read(self._ptr, data, size)
         return _ffi.buffer(data, size)
 
@@ -2342,7 +2342,7 @@ class RingBuffer(object):
         read, :attr:`read_space`, :attr:`read_buffers`
 
         """
-        data = _ffi.new("unsigned char[]", size)
+        data = _ffi.new('unsigned char[]', size)
         size = _lib.jack_ringbuffer_peek(self._ptr, data, size)
         return _ffi.buffer(data, size)
 
@@ -2364,7 +2364,7 @@ class RingBuffer(object):
            again to get new ones.
 
         """
-        vectors = _ffi.new("jack_ringbuffer_data_t[2]")
+        vectors = _ffi.new('jack_ringbuffer_data_t[2]')
         _lib.jack_ringbuffer_get_read_vector(self._ptr, vectors)
         return (
             _ffi.buffer(vectors[0].buf, vectors[0].len),
@@ -2397,7 +2397,7 @@ class RingBuffer(object):
 
         """
         _check(_lib.jack_ringbuffer_mlock(self._ptr),
-               "Error mlocking the RingBuffer data")
+               'Error mlocking the RingBuffer data')
 
     def reset(self, size=None):
         """Reset the read and write pointers, making an empty buffer.
@@ -2437,11 +2437,11 @@ class Status(object):
         self._code = code
 
     def __repr__(self):
-        flags = ", ".join(name for name in dir(self)
+        flags = ', '.join(name for name in dir(self)
                           if not name.startswith('_') and getattr(self, name))
         if not flags:
-            flags = "no flags set"
-        return "<jack.Status 0x{0:X}: {1}>".format(self._code, flags)
+            flags = 'no flags set'
+        return '<jack.Status 0x{0:X}: {1}>'.format(self._code, flags)
 
     @property
     def failure(self):
@@ -2545,7 +2545,7 @@ class TransportState(object):
         return self._code == other
 
     def __repr__(self):
-        return "jack." + {
+        return 'jack.' + {
             _lib.JackTransportStopped: 'STOPPED',
             _lib.JackTransportRolling: 'ROLLING',
             _lib.JackTransportStarting: 'STARTING',
@@ -2598,7 +2598,7 @@ def position2dict(pos):
 
 def version():
     """Get tuple of major/minor/micro/protocol version."""
-    v = _ffi.new("int[4]")
+    v = _ffi.new('int[4]')
     _lib.jack_get_version(v+0, v+1, v+2, v+3)
     return tuple(v)
 
@@ -2678,7 +2678,7 @@ def _set_error_or_info_function(callback, setter):
     if callback is None:
         callback_wrapper = _ffi.NULL
     else:
-        @_ffi.callback("void (*)(const char*)")
+        @_ffi.callback('void (*)(const char*)')
         def callback_wrapper(msg):
             callback(_ffi.string(msg).decode())
 
@@ -2691,4 +2691,4 @@ _keepalive = {}
 def _check(error_code, msg):
     """Check error code and raise JackError if non-zero."""
     if error_code:
-        raise JackError("{0} ({1})".format(msg, error_code))
+        raise JackError('{0} ({1})'.format(msg, error_code))
