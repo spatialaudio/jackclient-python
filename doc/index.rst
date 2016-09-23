@@ -11,7 +11,7 @@
 
 .. include:: ../CONTRIBUTING.rst
 
-.. default-role::
+.. default-role:: any
 
 API Documentation
 -----------------
@@ -34,4 +34,4 @@ Version History
 
 .. include:: ../NEWS.rst
 
-.. default-role::
+.. default-role:: any
