@@ -1132,9 +1132,8 @@ class Client(object):
         Parameters
         ----------
         callback : callable
-            User-supplied function function that is called whenever a
-            port is registered or unregistered.
-            It must have this signature::
+            User-supplied function that is called whenever a port is
+            registered or unregistered.  It must have this signature::
 
                 callback(port: Port, register: bool) -> None
 
