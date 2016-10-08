@@ -17,6 +17,13 @@ Pass-Through Client
 
 .. literalinclude:: ../examples/thru_client.py
 
+"Showtime" Client
+-----------------
+
+:download:`showtime.py <../examples/showtime.py>`
+
+.. literalinclude:: ../examples/showtime.py
+
 MIDI Monitor
 ------------
 
