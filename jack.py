@@ -1124,6 +1124,18 @@ class Client(object):
         .. note:: This function cannot be called while the client is
            activated (after `activate()` has been called).
 
+        .. note:: Due to JACK 1 behavior, it is not possible to get
+           the pointer to an unregistering JACK Port if it already
+           existed before `activate()` was called. This will cause
+           the callback not to be called if *only_available* is
+           ``True``, or called with ``None`` as first argument (see
+           below).
+
+           To avoid this, call `Client.get_ports()` just after
+           `activate()`, allowing the module to store pointers to
+           already existing ports and always receive a `Port`
+           argument for this callback.
+
         Parameters
         ----------
         callback : callable
@@ -1183,6 +1195,18 @@ class Client(object):
 
         .. note:: This function cannot be called while the client is
            activated (after `activate()` has been called).
+
+        .. note:: Due to JACK 1 behavior, it is not possible to get
+           the pointer to an unregistering JACK Port if it already
+           existed before `activate()` was called. This will cause
+           the callback not to be called if *only_available* is
+           ``True``, or called with ``None`` as first argument (see
+           below).
+
+           To avoid this, call `Client.get_ports()` just after
+           `activate()`, allowing the module to store pointers to
+           already existing ports and always receive a `Port`
+           argument for this callback.
 
         Parameters
         ----------
