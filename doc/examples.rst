@@ -44,3 +44,10 @@ Simple MIDI Synth
 :download:`midi_sine.py <../examples/midi_sine.py>`
 
 .. literalinclude:: ../examples/midi_sine.py
+
+Simple MIDI Synth (NumPy Edition)
+---------------------------------
+
+:download:`midi_sine_numpy.py <../examples/midi_sine_numpy.py>`
+
+.. literalinclude:: ../examples/midi_sine_numpy.py
