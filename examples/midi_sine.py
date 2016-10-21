@@ -11,7 +11,7 @@ But it is actually better:
 
 + ASR envelope
 + unlimited polyphony (well, "only" limited by CPU and memory)
-+ arbitrary many MIDI events per block
++ arbitrarily many MIDI events per block
 + can handle NoteOn and NoteOff event of the same pitch in one block
 
 It is also worse:
