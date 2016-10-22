@@ -379,7 +379,8 @@ class Client(object):
                                           *optargs)
         self._status = Status(status[0])
         if not self._ptr:
-            raise JackError(str(self.status))
+            raise JackError('Error initializing "{0}": {1}'.format(
+                name, self.status))
 
         self._inports = Ports(self, _AUDIO, _lib.JackPortIsInput)
         self._outports = Ports(self, _AUDIO, _lib.JackPortIsOutput)
