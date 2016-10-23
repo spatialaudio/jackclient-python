@@ -17,6 +17,13 @@ Pass-Through Client
 
 .. literalinclude:: ../examples/thru_client.py
 
+Sound File Playback
+-------------------
+
+:download:`play_file.py <../examples/play_file.py>`
+
+.. literalinclude:: ../examples/play_file.py
+
 "Showtime" Client
 -----------------
 
