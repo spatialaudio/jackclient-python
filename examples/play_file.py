@@ -23,7 +23,7 @@ import threading
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('filename', help='audio file to be played back')
 parser.add_argument(
-    '-b', '--buffersize', type=int, default=10,
+    '-b', '--buffersize', type=int, default=20,
     help='number of blocks used for buffering (default: %(default)s)')
 parser.add_argument('-c', '--clientname', default='file player',
                     help='JACK client name')
@@ -33,8 +33,7 @@ args = parser.parse_args()
 if args.buffersize < 1:
     parser.error('buffersize must be at least 1')
 
-callback2disk = queue.Queue(maxsize=1)
-disk2callback = queue.Queue(maxsize=1)
+q = queue.Queue(maxsize=args.buffersize)
 event = threading.Event()
 
 
@@ -63,27 +62,20 @@ def stop_callback(msg=''):
 
 
 def process(frames):
-    global callback_buffer, callback_counter
     if frames != blocksize:
         stop_callback('blocksize must not be changed, I quit!')
-    if callback_counter == 0:
-        try:
-            callback2disk.put_nowait(callback_buffer)
-            callback_buffer, callback_counter = disk2callback.get_nowait()
-        except (queue.Full, queue.Empty):
-            stop_callback('Buffer error: increase buffersize?')
-        if callback_counter == 0:  # Playback is finished
-            stop_callback()
-    idx = (args.buffersize - callback_counter) * blocksize
-    block = callback_buffer[idx:idx + blocksize]
-    for channel, port in zip(block.T, client.outports):
+    try:
+        data = q.get_nowait()
+    except queue.Empty:
+        stop_callback('Buffer is empty: increase buffersize?')
+    if data is None:
+        stop_callback()  # Playback is finished
+    for channel, port in zip(data.T, client.outports):
         port.get_array()[:] = channel
-    callback_counter -= 1
 
 
 try:
     import jack
-    import numpy as np
     import soundfile as sf
 
     client = jack.Client(args.clientname)
@@ -94,28 +86,15 @@ try:
     client.set_process_callback(process)
 
     with sf.SoundFile(args.filename) as f:
-        block_generator = f.blocks(blocksize=blocksize, dtype='float32',
-                                   always_2d=True, fill_value=0)
-
-        def fill_buffer(buf):
-            nr = -1  # For the case that block_generator is already exhausted
-            for nr, block in zip(range(args.buffersize), block_generator):
-                idx = nr * blocksize
-                buf[idx:idx+blocksize] = block
-            return nr + 1  # Number of valid blocks, the rest is garbage
-
-        # Initialize first audio buffer to be played back
-        buffer = np.empty([blocksize * args.buffersize, f.channels])
-        valid_blocks = fill_buffer(buffer)
-        disk2callback.put_nowait((buffer, valid_blocks))
-
-        # Initialize second buffer
-        callback_buffer = np.empty([blocksize * args.buffersize, f.channels])
-        callback_counter = 0
-
         for ch in range(f.channels):
             client.outports.register('out_{0}'.format(ch + 1))
-
+        block_generator = f.blocks(blocksize=blocksize, dtype='float32',
+                                   always_2d=True, fill_value=0)
+        try:
+            for data in block_generator:
+                q.put_nowait(data)
+        except queue.Full:
+            pass
         with client:
             if not args.manual:
                 target_ports = client.get_ports(
@@ -127,16 +106,14 @@ try:
                 else:
                     for source, target in zip(client.outports, target_ports):
                         source.connect(target)
-
             timeout = blocksize * args.buffersize / samplerate
-            while valid_blocks:
-                buffer = callback2disk.get(timeout=timeout)
-                valid_blocks = fill_buffer(buffer)
-                disk2callback.put((buffer, valid_blocks), timeout=timeout)
-            event.wait()
+            for data in block_generator:
+                q.put(data, timeout=timeout)
+            q.put(None, timeout=timeout)  # Signal end of file
+            event.wait()  # Wait until playback is finished
 except KeyboardInterrupt:
     parser.exit('\nInterrupted by user')
-except (queue.Empty, queue.Full):
+except (queue.Full):
     # A timeout occured, i.e. there was an error in the callback
     parser.exit(1)
 except Exception as e:
