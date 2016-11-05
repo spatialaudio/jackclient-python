@@ -1,3 +1,7 @@
+Version 0.4.2 (2016-11-05):
+ * new examples: ``showtime.py``, ``midi_sine_numpy.py`` and ``play_file.py``
+ * new option ``only_available`` for port callbacks
+
 Version 0.4.1 (2016-05-24):
  * new property `jack.Client.transport_frame`, deprecating
    `jack.Client.transport_locate()`

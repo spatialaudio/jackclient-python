@@ -23,7 +23,7 @@
 http://jackclient-python.rtfd.org/
 
 """
-__version__ = '0.4.1'
+__version__ = '0.4.2'
 
 from cffi import FFI as _FFI
 import errno as _errno
