@@ -90,11 +90,8 @@ try:
             client.outports.register('out_{0}'.format(ch + 1))
         block_generator = f.blocks(blocksize=blocksize, dtype='float32',
                                    always_2d=True, fill_value=0)
-        try:
-            for data in block_generator:
-                q.put_nowait(data)
-        except queue.Full:
-            pass
+        for _, data in zip(range(args.buffersize), block_generator):
+            q.put_nowait(data)  # Pre-fill queue
         with client:
             if not args.manual:
                 target_ports = client.get_ports(
@@ -117,4 +114,4 @@ except (queue.Full):
     # A timeout occured, i.e. there was an error in the callback
     parser.exit(1)
 except Exception as e:
-    parser.exit(e)
+    parser.exit(type(e).__name__ + ': ' + str(e))
