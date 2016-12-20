@@ -38,6 +38,7 @@ _ffi.cdef("""
 typedef uint64_t jack_uuid_t;
 typedef uint32_t jack_nframes_t;
 typedef uint64_t jack_time_t;
+typedef uint64_t jack_intclient_t;
 typedef struct _jack_port jack_port_t;
 typedef struct _jack_client jack_client_t;
 typedef uint32_t jack_port_id_t;
@@ -124,6 +125,10 @@ char* jack_get_uuid_for_client_name(jack_client_t* client, const char* client_na
 char* jack_get_client_name_by_uuid(jack_client_t* client, const char* client_uuid);
 /* deprecated: jack_internal_client_new */
 /* deprecated: jack_internal_client_close */
+char* jack_get_internal_client_name(jack_client_t *client, jack_intclient_t intclient);
+jack_intclient_t jack_internal_client_handle (jack_client_t *client, const char *client_name, jack_status_t *status);
+jack_intclient_t jack_internal_client_load(jack_client_t *client, const char *client_name, jack_options_t options, jack_status_t *status, ...);
+jack_status_t jack_internal_client_unload (jack_client_t *client, jack_intclient_t intclient);
 int jack_activate(jack_client_t* client);
 int jack_deactivate(jack_client_t* client);
 int jack_get_client_pid(const char* name);
@@ -1588,6 +1593,65 @@ class Client(object):
             self._ptr, name_pattern.encode(), type_pattern, flags),
             _lib.jack_free)
         return self._port_list_from_pointers(names)
+
+    def get_internal_client_name(self, intclient):
+        """Get the name of an internal client given the handle."""
+        client_name = _ffi.gc(_lib.jack_get_internal_client_name(
+            self._ptr, intclient), _lib.jack_free)
+        return _ffi.string(client_name).decode()
+
+    def internal_client_handle(self, client_name):
+        """Get the handle for an internal client name."""
+        status = _ffi.new("jack_status_t*")
+        intclient = _lib.jack_internal_client_handle(self._ptr, client_name.encode(), status)
+        if not intclient:
+            status = str(Status(status[0]))
+            raise JackError("Unable to get handle for {0!r}: {1}".format(client_name, status))
+        return intclient
+
+    def internal_client_load(self, name, use_exact_name=False, load_name=None, load_init=None):
+        """
+        Parameters
+        ----------
+        name : str
+            The desired client name of at most :func:`client_name_size`
+            characters.  The name scope is local to each server.
+            Unless forbidden by the `use_exact_name` option, the server
+            will modify this name to create a unique variant, if needed.
+
+        Other Parameters
+        ----------------
+        use_exact_name : bool
+            Whether an error should be raised if `name` is not unique.
+            See :attr:`Status.name_not_unique`.
+        load_name : str
+            The shared object file from which to load the new internal client
+            (otherwise use `name`)
+        load_init : str:
+            An arbitary string passed to the internal client's
+            jack_initialize() routine (otherwise NULL), of no more than
+            :func:`load_init_limit` bytes.
+        """
+        status = _ffi.new("jack_status_t*")
+        options = _lib.JackNullOption
+        optargs = []
+        if use_exact_name:
+            options |= _lib.JackUseExactName
+        if load_name:
+            options |= _lib.JackLoadName
+            optargs.append(_ffi.new("char[]", load_name.encode()))
+        if load_init:
+            options |= _lib.JackLoadInit
+            optargs.append(_ffi.new("char[]", load_init.encode()))
+        intclient = _lib.jack_internal_client_load(self._ptr, name.encode(), options, status,
+                                                   *optargs)
+        status = Status(status[0])
+        if not intclient:
+            raise JackError(str(status))
+        return intclient
+
+    def internal_client_unload(self, intclient):
+        return Status(_lib.jack_internal_client_unload(self._ptr, intclient))
 
     def _callback(self, cdecl, **kwargs):
         """Wrapper for ffi.callback() that keeps callback alive."""
