@@ -2018,7 +2018,7 @@ class OwnMidiPort(MidiPort, OwnPort):
         """Clear an event buffer.
 
         This should be called at the beginning of each process cycle
-        before calling `reserve_midi_event()` or `write_midi_event`.
+        before calling `reserve_midi_event()` or `write_midi_event()`.
         This function may not be called on an input port.
 
         """
