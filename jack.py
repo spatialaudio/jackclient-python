@@ -1544,7 +1544,7 @@ class Client(object):
                         _lib.jack_free)
         return self._port_list_from_pointers(names)
 
-    def get_ports(self, name_pattern="", is_audio=False, is_midi=False,
+    def get_ports(self, name_pattern='', is_audio=False, is_midi=False,
                   is_input=False, is_output=False, is_physical=False,
                   can_monitor=False, is_terminal=False):
         """Return a list of selected ports.
@@ -1572,7 +1572,7 @@ class Client(object):
         elif is_midi and not is_audio:
             type_pattern = _MIDI
         else:
-            type_pattern = b""
+            type_pattern = b''
         flags = 0x0
         if is_input:
             flags |= _lib.JackPortIsInput

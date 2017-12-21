@@ -99,20 +99,20 @@ First, import the module:
 
 Then, you most likely want to create a new `jack.Client`:
 
->>> client = jack.Client("MyGreatClient")
+>>> client = jack.Client('MyGreatClient')
 
 You probably want to create some audio input and output ports, too:
 
->>> client.inports.register("input_1")
+>>> client.inports.register('input_1')
 jack.OwnPort('MyGreatClient:input_1')
->>> client.outports.register("output_1")
+>>> client.outports.register('output_1')
 jack.OwnPort('MyGreatClient:output_1')
 
 As you can see, these functions return the newly created port.
 If you want, you can save it for later:
 
->>> in2 = client.inports.register("input_2")
->>> out2 = client.outports.register("output_2")
+>>> in2 = client.inports.register('input_2')
+>>> out2 = client.outports.register('output_2')
 
 To see what you can do with the returned objects, have a look at the
 documentation of the class `jack.OwnPort`.
@@ -130,9 +130,9 @@ information about these lists of ports.
 If you have selected an appropriate driver in your JACK settings, you can also
 create MIDI ports:
 
->>> client.midi_inports.register("midi_in")
+>>> client.midi_inports.register('midi_in')
 jack.OwnMidiPort('MyGreatClient:midi_in')
->>> client.midi_outports.register("midi_out")
+>>> client.midi_outports.register('midi_out')
 jack.OwnMidiPort('MyGreatClient:midi_out')
 
 You can check what other JACK ports are available (your output may be
@@ -163,7 +163,7 @@ You can also be more specific when looking for ports:
 
 You can even use regular expressions to search for ports:
 
->>> client.get_ports("Great.*2$")
+>>> client.get_ports('Great.*2$')
 [jack.OwnPort('MyGreatClient:input_2'), jack.OwnPort('MyGreatClient:output_2')]
 
 If you want, you can also set all kinds of callback functions for your client.
@@ -177,27 +177,27 @@ Once you are ready to run, you should activate your client:
 As soon as the client is activated, you can make connections (this isn't
 possible before activating the client):
 
->>> client.connect("system:capture_1", "MyGreatClient:input_1")
->>> client.connect("MyGreatClient:output_1", "system:playback_1")
+>>> client.connect('system:capture_1', 'MyGreatClient:input_1')
+>>> client.connect('MyGreatClient:output_1', 'system:playback_1')
 
 You can also use the port objects from before instead of port names:
 
->>> client.connect(out2, "system:playback_2")
->>> in2.connect("system:capture_2")
+>>> client.connect(out2, 'system:playback_2')
+>>> in2.connect('system:capture_2')
 
 Use `jack.Client.get_all_connections()` to find out which other ports are
 connected to a given port.
 If you own the port, you can also use `jack.OwnPort.connections`.
 
->>> client.get_all_connections("system:playback_1")
+>>> client.get_all_connections('system:playback_1')
 [jack.OwnPort('MyGreatClient:output_1')]
 >>> out2.connections
 [jack.Port('system:playback_2')]
 
 Of course you can also disconnect ports, there are again several possibilities:
 
->>> client.disconnect("system:capture_1", "MyGreatClient:input_1")
->>> client.disconnect(out2, "system:playback_2")
+>>> client.disconnect('system:capture_1', 'MyGreatClient:input_1')
+>>> client.disconnect(out2, 'system:playback_2')
 >>> in2.disconnect()  # disconnect all connections with in2
 
 If you don't need your ports anymore, you can un-register them:
