@@ -23,8 +23,8 @@ sys.path.insert(0, os.path.abspath('../src'))
 sys.path.insert(0, os.path.abspath('.'))
 
 # Fake import to avoid actually loading CFFI and the JACK library
-import fake_cffi
-sys.modules['cffi'] = sys.modules['fake_cffi']
+import fake__jack
+sys.modules['_jack'] = sys.modules['fake__jack']
 
 # -- General configuration ------------------------------------------------
 

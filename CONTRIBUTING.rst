@@ -24,6 +24,10 @@ If you prefer, you can also replace the last command with::
 
 ... where ``-e`` stands for ``--editable``.
 
+Whenever the file ``jack_build.py`` changes (either because you edited it or it
+was updated by pulling from Github or switching branches), you have to run the
+last command again.
+
 If you make changes to the documentation, you can locally re-create the HTML
 pages using Sphinx_.
 You can install it and a few other necessary packages with::
