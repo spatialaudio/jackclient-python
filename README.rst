@@ -7,13 +7,16 @@ Documentation:
    http://jackclient-python.rtfd.org/
 
 Code:
-   http://github.com/spatialaudio/jackclient-python/
-
-Python Package Index:
-   http://pypi.python.org/pypi/JACK-Client/
+   https://github.com/spatialaudio/jackclient-python/
 
 License:
    MIT -- see the file ``LICENSE`` for details.
+
+.. image:: https://badge.fury.io/py/JACK-Client.svg
+   :target: https://pypi.python.org/pypi/JACK-Client/
+
+.. image:: https://repology.org/badge/vertical-allrepos/python:jack-client.svg
+   :target: https://repology.org/metapackage/python:jack-client
 
 Requirements
 ------------
@@ -29,19 +32,24 @@ pip/setuptools:
    Those are needed for the installation of the Python module and its
    dependencies.  Most systems will have these installed already, but if not,
    you should install it with your package manager or you can download and
-   install pip and setuptools as described on the `pip installation`_ page.
-   If you happen to have pip but not setuptools, use this command::
+   install ``pip`` and ``setuptools`` as described on the `pip installation`_
+   page.
+   If you happen to have ``pip`` but not ``setuptools``, use this command::
 
-      pip install setuptools --user
+      python3 -m pip install setuptools --user
+
+   To upgrade to a newer version of an already installed package (including
+   ``pip`` itself), use the ``--upgrade`` flag.
 
 CFFI:
    The `C Foreign Function Interface for Python`_ is used to access the C-API
    of the JACK library from within Python.  It supports CPython 2.6, 2.7, 3.x;
-   and is distributed with PyPy_ 2.0 beta2 or later.
-   You should install it with your package manager (if it's not installed
-   already), or you can get it with::
+   and is distributed with PyPy_.
+   If it's not installed already, you should install it with your package
+   manager (the package might be called ``python3-cffi`` or similar), or you can
+   get it with::
 
-      pip install cffi --user
+      python3 -m pip install cffi --user
 
 JACK library:
    The JACK_ library must be installed on your system (and CFFI must be able
@@ -59,18 +67,20 @@ NumPy (optional):
    The only place where NumPy is needed is `jack.OwnPort.get_array()`.
    If you need NumPy, you should install it with your package manager or use a
    Python distribution that already includes NumPy (see above).
-   Installing NumPy with pip requires a compiler and several additional
-   libraries and is therefore not recommended for beginners.
+   You can also install NumPy with ``pip``, but depending on your platform, this
+   might require a compiler and several additional libraries::
+
+      python3 -m pip install NumPy --user
 
 .. _JACK: http://jackaudio.org/
 .. _NumPy: http://www.numpy.org/
-.. _Python: http://www.python.org/
-.. _Anaconda: http://docs.continuum.io/anaconda/
+.. _Python: https://www.python.org/
+.. _Anaconda: https://www.anaconda.com/download/
 .. _WinPython: http://winpython.github.io/
 .. _C Foreign Function Interface for Python: http://cffi.readthedocs.org/
 .. _PyPy: http://pypy.org/
 .. _JACK download page: http://jackaudio.org/downloads/
-.. _pip installation: http://www.pip-installer.org/en/latest/installing.html
+.. _pip installation: https://pip.pypa.io/en/latest/installing/
 
 Installation
 ------------
@@ -78,14 +88,16 @@ Installation
 Once you have installed the above-mentioned dependencies, you can use pip
 to download and install the latest release with a single command::
 
-   pip install JACK-Client --user
+   python3 -m pip install JACK-Client --user
 
 If you want to install it system-wide for all users (assuming you have the
 necessary rights), you can just drop the ``--user`` option.
+If you have installed the module already, you can use the ``--upgrade`` flag to
+get the newest release.
 
 To un-install, use::
 
-   pip uninstall JACK-Client
+   python3 -m pip uninstall JACK-Client
 
 If you want to avoid installation altogether, you can simply copy ``jack.py``
 to your working directory (or to any directory in your Python path).

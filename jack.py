@@ -896,8 +896,8 @@ class Client(object):
            If you can live with some random audio drop-outs now and
            then, feel free to continue using Python!
 
-        __ http://en.wikipedia.org/wiki/Global_Interpreter_Lock
-        __ http://en.wikipedia.org/wiki/Garbage_collection_(computer_science)
+        __ https://en.wikipedia.org/wiki/Global_Interpreter_Lock
+        __ https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)
 
         .. note:: This function cannot be called while the client is
            activated (after `activate()` has been called).
