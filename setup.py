@@ -19,7 +19,7 @@ class PyTest(TestCommand):
 __version__ = 'unknown'
 
 # "import" __version__
-for line in open('jack.py'):
+for line in open('src/jack.py'):
     if line.startswith('__version__'):
         exec(line)
         break
@@ -27,6 +27,7 @@ for line in open('jack.py'):
 setup(
     name='JACK-Client',
     version=__version__,
+    package_dir={'': 'src'},
     py_modules=['jack'],
     install_requires=['CFFI'],
     extras_require={'NumPy': ['NumPy']},
@@ -36,7 +37,7 @@ setup(
     long_description=open('README.rst').read(),
     license='MIT',
     keywords='JACK audio low-latency multi-channel'.split(),
-    url='http://jackclient-python.rtfd.org/',
+    url='http://jackclient-python.readthedocs.io/',
     platforms='any',
     classifiers=[
         'License :: OSI Approved :: MIT License',
