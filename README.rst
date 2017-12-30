@@ -4,7 +4,7 @@ JACK Audio Connection Kit (JACK) Client for Python
 This Python module provides bindings for the JACK_ library.
 
 Documentation:
-   http://jackclient-python.rtfd.org/
+   http://jackclient-python.readthedocs.io/
 
 Code:
    https://github.com/spatialaudio/jackclient-python/

@@ -20,7 +20,7 @@
 
 """JACK Client for Python.
 
-http://jackclient-python.rtfd.org/
+http://jackclient-python.readthedocs.io/
 
 """
 __version__ = '0.4.3'
