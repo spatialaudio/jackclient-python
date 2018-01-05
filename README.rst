@@ -99,9 +99,6 @@ To un-install, use::
 
    python3 -m pip uninstall JACK-Client
 
-If you want to avoid installation altogether, you can simply copy ``jack.py``
-to your working directory (or to any directory in your Python path).
-
 Usage
 -----
 
