@@ -1440,28 +1440,34 @@ class Port(object):
         """
         return _ffi.string(_lib.jack_port_short_name(self._ptr)).decode()
 
-    @property
-    def alias(self):
-        """Alias of the JACK port, not mandatory.
-
-        The alias string returned is something like that:
-        
-        in-hw-1-0-0-LPK25-MIDI-1
-        
-        or
-        
-        out-hw-2-0-0-MK-249C-USB-MIDI-keyboard-MIDI-
-
-        """
-        aliases=[_ffi.new("char[0xff]"), _ffi.new("char[0xff]")]
-        aliasesptr=_ffi.new("char *[]", aliases)
-        if (_lib.jack_port_get_aliases(self._ptr, aliasesptr) > 0):
-            return _ffi.string(aliases[0]).decode();
-
     @shortname.setter
     def shortname(self, shortname):
         _check(_lib.jack_port_set_name(self._ptr, shortname.encode()),
                'Error setting port name')
+
+    @property
+    def aliases(self):
+        """A list of 2 strings containing the aliases for the JACK port."""
+        ctype="char[%d]" % _lib.jack_port_name_size()
+        aliases=[_ffi.new(ctype), _ffi.new(ctype)]
+        aliasesptr=_ffi.new("char *[]", aliases)
+        if (_lib.jack_port_get_aliases(self._ptr, aliasesptr) > 0):
+            return [_ffi.string(aliases[0]).decode(),_ffi.string(aliases[1]).decode()]
+        else:
+            return [None,None]
+
+    def set_alias(self, alias):
+        """Set an alias for the JACK port.
+        Ports can have up to two aliases. If both are already set, 
+        this function will return an error."""
+        _check(_lib.jack_port_set_alias(self._ptr, alias.encode()),
+               'Error setting port alias')
+
+    def unset_alias(self, alias):
+        """Remove an alias for the JACK port. If the alias doesn't exist,
+        this function will return an error."""
+        _check(_lib.jack_port_unset_alias(self._ptr, alias.encode()),
+               'Error unsetting port alias')
 
     @property
     def uuid(self):

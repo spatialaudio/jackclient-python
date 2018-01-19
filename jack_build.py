@@ -141,8 +141,8 @@ const char** jack_port_get_all_connections(const jack_client_t* client, const ja
 /* deprecated: jack_port_tie */
 /* deprecated: jack_port_untie */
 int jack_port_set_name(jack_port_t* port, const char* port_name);
-/* TODO: jack_port_set_alias */
-/* TODO: jack_port_unset_alias */
+int jack_port_set_alias(jack_port_t *port, const char *alias);
+int jack_port_unset_alias(jack_port_t *port, const char *alias);
 int jack_port_get_aliases(const jack_port_t * port, char *const aliases[2]);
 int jack_port_request_monitor(jack_port_t *port, int onoff);
 /* not implemented (use jack_port_request_monitor): jack_port_request_monitor_by_name */
