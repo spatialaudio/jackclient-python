@@ -31,8 +31,10 @@ for port in ports:
 
 print('Testing aliases property ...')
 for port in ports:
-	print("port '%s', alias 0 => '%s')" % (port.shortname,port.aliases[0]))
-	print("port '%s', alias 1 => '%s')" % (port.shortname,port.aliases[1]))
+	i=0
+	for alias in port.aliases:
+		print("port '%s', alias %d => '%s'" % (port.shortname,i,alias))
+		i+=1
 
 print('Testing unset_alias() ...')
 i=0
@@ -44,5 +46,7 @@ for port in ports:
 
 print('Testing aliases property ...')
 for port in ports:
-	print("port '%s', alias 0 => '%s')" % (port.shortname,port.aliases[0]))
-	print("port '%s', alias 1 => '%s')" % (port.shortname,port.aliases[1]))
+	i=0
+	for alias in port.aliases:
+		print("port '%s', alias %d => '%s'" % (port.shortname,i,alias))
+		i+=1

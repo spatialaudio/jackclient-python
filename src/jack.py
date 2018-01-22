@@ -1451,10 +1451,15 @@ class Port(object):
         ctype="char[%d]" % _lib.jack_port_name_size()
         aliases=[_ffi.new(ctype), _ffi.new(ctype)]
         aliasesptr=_ffi.new("char *[]", aliases)
+        result=[]
         if (_lib.jack_port_get_aliases(self._ptr, aliasesptr) > 0):
-            return [_ffi.string(aliases[0]).decode(),_ffi.string(aliases[1]).decode()]
-        else:
-            return [None,None]
+          alias1=_ffi.string(aliases[0]).decode()
+          alias2=_ffi.string(aliases[1]).decode()
+          if alias1:
+              result.append(alias1)
+          if alias2:
+              result.append(alias2)
+          return result
 
     def set_alias(self, alias):
         """Set an alias for the JACK port.
