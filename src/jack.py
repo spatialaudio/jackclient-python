@@ -1458,7 +1458,7 @@ class Port(object):
                 if alias:
                     result.append(alias)
 
-          return result
+        return result
 
     def set_alias(self, alias):
         """Set an alias for the JACK port.
