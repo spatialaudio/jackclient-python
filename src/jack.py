@@ -1453,12 +1453,11 @@ class Port(object):
         aliasesptr=_ffi.new("char *[]", aliases)
         result=[]
         if (_lib.jack_port_get_aliases(self._ptr, aliasesptr) > 0):
-          alias1=_ffi.string(aliases[0]).decode()
-          alias2=_ffi.string(aliases[1]).decode()
-          if alias1:
-              result.append(alias1)
-          if alias2:
-              result.append(alias2)
+            for i in 0, 1:
+                alias=_ffi.string(aliases[i]).decode()
+                if alias:
+                    result.append(alias)
+
           return result
 
     def set_alias(self, alias):
