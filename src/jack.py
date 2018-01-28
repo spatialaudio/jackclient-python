@@ -1447,14 +1447,14 @@ class Port(object):
 
     @property
     def aliases(self):
-        """A list of 2 strings containing the aliases for the JACK port."""
-        ctype="char[%d]" % _lib.jack_port_name_size()
-        aliases=[_ffi.new(ctype), _ffi.new(ctype)]
-        aliasesptr=_ffi.new("char *[]", aliases)
-        result=[]
+        """Returns a list of strings with the aliases for the JACK port."""
+        ctype = "char[%d]" % _lib.jack_port_name_size()
+        aliases = [_ffi.new(ctype), _ffi.new(ctype)]
+        aliasesptr = _ffi.new("char *[]", aliases)
+        result = []
         if (_lib.jack_port_get_aliases(self._ptr, aliasesptr) > 0):
             for i in 0, 1:
-                alias=_ffi.string(aliases[i]).decode()
+                alias = _ffi.string(aliases[i]).decode()
                 if alias:
                     result.append(alias)
 
@@ -1462,14 +1462,20 @@ class Port(object):
 
     def set_alias(self, alias):
         """Set an alias for the JACK port.
-        Ports can have up to two aliases. If both are already set, 
-        this function will return an error."""
+
+        Ports can have up to two aliases. If both are already set,
+        this function will return an error.
+
+        """
         _check(_lib.jack_port_set_alias(self._ptr, alias.encode()),
                'Error setting port alias')
 
     def unset_alias(self, alias):
-        """Remove an alias for the JACK port. If the alias doesn't exist,
-        this function will return an error."""
+        """Remove an alias for the JACK port.
+        
+        If the alias doesn't exist this function will return an error.
+
+        """
         _check(_lib.jack_port_unset_alias(self._ptr, alias.encode()),
                'Error unsetting port alias')
 
@@ -2454,6 +2460,7 @@ def _set_error_or_info_function(callback, setter):
 
         _keepalive[setter] = callback_wrapper
     setter(callback_wrapper)
+
 
 _keepalive = {}
 
