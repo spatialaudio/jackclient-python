@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Create a JACK client and test port-alias functionality
+"""Create a JACK client and test port-alias functionality.
 
 This client test the 3 functions related with port-aliases
 
@@ -22,31 +22,31 @@ if client.status.name_not_unique:
 ports = client.get_ports()
 
 print('Testing set_alias() ...')
-i=0
+i = 0
 for port in ports:
-	alias_name="Alias Name %d" % i
+	alias_name = "Alias Name %d" % i
 	print("port '%s' => set_alias('%s')" % (port.shortname,alias_name))
 	port.set_alias(alias_name)
-	i+=1
+	i += 1
 
 print('Testing aliases property ...')
 for port in ports:
-	i=0
+	i = 0
 	for alias in port.aliases:
 		print("port '%s', alias %d => '%s'" % (port.shortname,i,alias))
-		i+=1
+		i += 1
 
 print('Testing unset_alias() ...')
-i=0
+i = 0
 for port in ports:
-	alias_name="Alias Name %d" % i
+	alias_name = "Alias Name %d" % i
 	print("port '%s' => unset_alias('%s')" % (port.shortname,alias_name))
 	port.unset_alias(alias_name)
-	i+=1
+	i += 1
 
 print('Testing aliases property ...')
 for port in ports:
-	i=0
+	i = 0
 	for alias in port.aliases:
 		print("port '%s', alias %d => '%s'" % (port.shortname,i,alias))
-		i+=1
+		i += 1
