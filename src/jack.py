@@ -1448,11 +1448,11 @@ class Port(object):
     @property
     def aliases(self):
         """Returns a list of strings with the aliases for the JACK port."""
-        ctype = "char[%d]" % _lib.jack_port_name_size()
+        ctype = "char[{}]".format(_lib.jack_port_name_size())
         aliases = [_ffi.new(ctype), _ffi.new(ctype)]
         aliasesptr = _ffi.new("char *[]", aliases)
         result = []
-        if (_lib.jack_port_get_aliases(self._ptr, aliasesptr) > 0):
+        if _lib.jack_port_get_aliases(self._ptr, aliasesptr) > 0:
             for i in 0, 1:
                 alias = _ffi.string(aliases[i]).decode()
                 if alias:
