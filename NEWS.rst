@@ -1,3 +1,7 @@
+Version 0.4.4 (2018-02-19):
+ * `Port.set_alias()`, `Port.unset_alias()` and `Port.aliases`, thanks to
+   Jośe Fernando Moyano
+
 Version 0.4.3 (2017-12-30):
  * switch to CFFI out-of-line ABI mode (to reduce import time)
 
