@@ -43,11 +43,13 @@ The generated files will be available in the directory ``build/sphinx/html/``.
 .. _Sphinx: http://sphinx-doc.org/
 
 There are no proper tests (yet?), but the code examples from the README file
-can be verified by::
+can be verified with pytest_.
+If you haven't installed it already, you can install it with::
 
-   python3 setup.py test
+   python3 -m pip install pytest ---user
 
-This uses py.test_; if you haven't installed it already, it will be downloaded
-and installed for you.
+As soon as pytest_ is installed, you can run the (rudimentary) tests with::
 
-.. _py.test: http://pytest.org/
+   python3 -m pytest
+
+.. _pytest: https://pytest.org/
