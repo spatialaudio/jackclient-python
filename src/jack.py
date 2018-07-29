@@ -1783,8 +1783,8 @@ class OwnMidiPort(MidiPort, OwnPort):
         buf = _lib.jack_port_get_buffer(self._ptr, self._client.blocksize)
         for i in range(_lib.jack_midi_get_event_count(buf)):
             err = _lib.jack_midi_event_get(event, buf, i)
-            # TODO: proper error handling if this ever happens:
-            assert not err, err
+            if err:
+                break
             yield event.time, _ffi.buffer(event.buffer, event.size)
 
     def clear_buffer(self):
