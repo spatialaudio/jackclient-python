@@ -1,11 +1,18 @@
 """Mock module for Sphinx autodoc."""
 
-
 import ctypes
+
+old_find_library = ctypes.util.find_library
+
+
+def new_find_library(name):
+    if 'jack' in name.lower():
+        return NotImplemented
+    return old_find_library(name)
 
 
 # Monkey-patch ctypes to disable searching for JACK
-ctypes.util.find_library = lambda _: NotImplemented
+ctypes.util.find_library = new_find_library
 
 
 class Fake(object):
