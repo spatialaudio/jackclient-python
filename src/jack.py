@@ -1778,6 +1778,10 @@ class OwnMidiPort(MidiPort, OwnPort):
         event : buffer
             The actual MIDI event data.
 
+            .. warning:: The buffer is re-used (and therefore
+               overwritten) between iterations.  If you want to keep the
+               data beyond the current iteration, please make a copy.
+
         """
         event = self._event
         buf = _lib.jack_port_get_buffer(self._ptr, self._client.blocksize)
