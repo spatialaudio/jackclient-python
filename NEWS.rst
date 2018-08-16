@@ -1,3 +1,6 @@
+Version 0.4.5 (2018-09-02):
+ * Fix issue #54; other minor improvements
+
 Version 0.4.4 (2018-02-19):
  * `Port.set_alias()`, `Port.unset_alias()` and `Port.aliases`, thanks to
    Jośe Fernando Moyano
