@@ -45,6 +45,13 @@ MIDI Chord Generator
 
 .. literalinclude:: ../examples/midi_chords.py
 
+MIDI File Player
+----------------
+
+:download:`midi_file_player.py <../examples/midi_file_player.py>`
+
+.. literalinclude:: ../examples/midi_file_player.py
+
 Simple MIDI Synth
 -----------------
 
