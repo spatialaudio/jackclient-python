@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2015 Matthias Geier
+# Copyright (c) 2014-2019 Matthias Geier
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
 http://jackclient-python.readthedocs.io/
 
 """
-__version__ = '0.4.5'
+__version__ = '0.4.6'
 
 from ctypes.util import find_library as _find_library
 import errno as _errno

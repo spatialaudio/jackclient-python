@@ -1,3 +1,6 @@
+Version 0.4.6 (2019-02-09):
+ * ``midi_file_player.py`` example
+
 Version 0.4.5 (2018-09-02):
  * Fix issue #54; other minor improvements
 
