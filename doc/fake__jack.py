@@ -24,6 +24,10 @@ class Fake(object):
     JackTransportStarting = 3
     JackTransportNetStarting = 4
 
+    PropertyCreated = 0
+    PropertyChanged = 1
+    PropertyDeleted = 2
+
     def dlopen(self, _):
         return self
 

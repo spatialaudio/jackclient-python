@@ -244,6 +244,45 @@ uint32_t jack_midi_get_lost_event_count(void* port_buffer);
 /* session.h */
 
 char* jack_client_get_uuid(jack_client_t* client);
+
+/* uuid.h */
+
+extern int jack_uuid_parse(const char* buf, jack_uuid_t*);
+
+/* metadata.h */
+
+typedef struct {
+    const char* key;
+    const char* data;
+    const char* type;
+} jack_property_t;
+int jack_set_property(jack_client_t*, jack_uuid_t subject, const char* key, const char* value, const char* type);
+int jack_get_property(jack_uuid_t subject, const char* key, char** value, char** type);
+typedef struct {
+    jack_uuid_t subject;
+    uint32_t property_cnt;
+    jack_property_t* properties;
+    uint32_t property_size;
+} jack_description_t;
+void jack_free_description(jack_description_t* desc, int free_description_itself);
+int jack_get_properties(jack_uuid_t subject, jack_description_t* desc);
+int jack_get_all_properties(jack_description_t** descs);
+int jack_remove_property(jack_client_t* client, jack_uuid_t subject, const char* key);
+int jack_remove_properties(jack_client_t* client, jack_uuid_t subject);
+int jack_remove_all_properties(jack_client_t* client);
+typedef enum {
+    PropertyCreated,
+    PropertyChanged,
+    PropertyDeleted,
+} jack_property_change_t;
+typedef void (*JackPropertyChangeCallback)(jack_uuid_t subject, const char* key, jack_property_change_t change, void* arg);
+int jack_set_property_change_callback(jack_client_t* client, JackPropertyChangeCallback callback, void* arg);
+extern const char* JACK_METADATA_PRETTY_NAME;
+extern const char* JACK_METADATA_HARDWARE;
+extern const char* JACK_METADATA_CONNECTED;
+extern const char* JACK_METADATA_PORT_GROUP;
+extern const char* JACK_METADATA_ICON_SMALL;
+extern const char* JACK_METADATA_ICON_LARGE;
 """)
 
 # Packed structure

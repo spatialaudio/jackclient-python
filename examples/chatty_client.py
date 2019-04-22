@@ -93,6 +93,23 @@ def xrun(delay):
     print('xrun; delay', delay, 'microseconds')
 
 
+try:
+    @client.set_property_change_callback
+    def property_change(subject, key, changed):
+        print('subject {}: '.format(subject), end='')
+        if not key:
+            assert changed == jack.PROPERTY_DELETED
+            print('all properties were removed')
+            return
+        print('property {!r} was {}'.format(key, {
+            jack.PROPERTY_CREATED: 'created',
+            jack.PROPERTY_CHANGED: 'changed',
+            jack.PROPERTY_DELETED: 'removed',
+        }[changed]))
+except jack.JackError as e:
+    print(e)
+
+
 print('activating JACK')
 with client:
     print('#' * 80)

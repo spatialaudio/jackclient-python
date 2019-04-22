@@ -56,8 +56,27 @@ STARTING = _lib.JackTransportStarting
 NETSTARTING = _lib.JackTransportNetStarting
 """Waiting for sync ready on the network."""
 
+PROPERTY_CREATED = _lib.PropertyCreated
+"""A property was created.  See `Client.set_property_change_callback()`."""
+PROPERTY_CHANGED = _lib.PropertyChanged
+"""A property was changed.  See `Client.set_property_change_callback()`."""
+PROPERTY_DELETED = _lib.PropertyDeleted
+"""A property was deleted.  See `Client.set_property_change_callback()`."""
+
 _SUCCESS = 0
 _FAILURE = 1
+
+
+def _decode(cdata):
+    return _ffi.string(cdata).decode()
+
+
+# Get metadata constants from library
+for name in dir(_lib):
+    if name.startswith('JACK_METADATA_'):
+        globals()[name[5:]] = _decode(getattr(_lib, name))
+else:
+    del name
 
 
 class Client(object):
@@ -154,7 +173,7 @@ class Client(object):
         uuid = _ffi.gc(_lib.jack_client_get_uuid(self._ptr), _lib.jack_free)
         if not uuid:
             raise JackError('Unable to get UUID')
-        return _ffi.string(uuid).decode()
+        return _decode(uuid)
 
     @property
     def samplerate(self):
@@ -1233,6 +1252,35 @@ class Client(object):
         _check(err, 'Error setting timebase callback')
         return True
 
+    def set_property_change_callback(self, callback):
+        """Register property change callback.
+
+        Tell the JACK server to call *callback* whenever a property is
+        created, changed or deleted.
+
+        Parameters
+        ----------
+        callback : callable
+            User-supplied function that is called whenever a property is
+            created, changed or deleted.  It must have this signature::
+
+                callback(subject: int, key: str, change: int) -> None
+
+            The first and second arguments are the *subject* and *key*,
+            respectively.  See `set_property()` for details.
+            The third argument has one of the values `PROPERTY_CREATED`,
+            `PROPERTY_CHANGED` or `PROPERTY_DELETED`, which should be
+            self-explanatory.
+
+        """
+        @self._callback('JackPropertyChangeCallback')
+        def callback_wrapper(subject, key, change, _):
+            callback(subject, _decode(key) if key else '', change)
+
+        _check(_lib.jack_set_property_change_callback(
+            self._ptr, callback_wrapper, _ffi.NULL),
+            'Error setting property change callback')
+
     def get_uuid_for_client_name(self, name):
         """Get the session ID for a client name.
 
@@ -1334,6 +1382,141 @@ class Client(object):
             self._ptr, name_pattern.encode(), type_pattern, flags),
             _lib.jack_free)
         return self._port_list_from_pointers(names)
+
+    def set_property(self, subject, key, value, type=''):
+        """Set a metadata property on *subject*.
+
+        Parameters
+        ----------
+        subject : int or str
+            The subject (UUID) to set the property on.
+            UUIDs can be obtained with `Client.uuid`, `Port.uuid` and
+            `Client.get_uuid_for_client_name()`.
+        key : str
+            The key (URI) of the property.  Some predefined keys are
+            available as ``jack.METADATA_*`` module constants.
+        value : str or bytes
+            The value of the property.
+        type : str, optional
+            The type of the property, either a MIME type or URI.
+            If *type* is empty, the *value* is assumed to be a UTF-8
+            encoded string (``'text/plain'``).
+
+            Example values:
+
+            - ``'image/png;base64'`` (base64 encoded PNG image)
+            - ``'http://www.w3.org/2001/XMLSchema#int'`` (integer)
+
+            Official types are preferred, but clients may use any
+            syntactically valid MIME type (which start with a type and
+            slash, like ``'text/...'``).  If a URI type is used, it must
+            be a complete absolute URI (which start with a scheme and
+            colon, like ``'http:'``).
+
+        See Also
+        --------
+        get_property
+        get_properties
+        get_all_properties
+        remove_property
+        remove_properties
+        remove_all_properties
+        set_property_change_callback
+
+        """
+        subject = _uuid_parse(subject)
+        if isinstance(value, str):
+            value = value.encode()
+        if isinstance(type, str):
+            type = type.encode()
+        if _lib.jack_set_property(
+                self._ptr, subject, key.encode(), value, type) != 0:
+            raise ValueError('Unable to set property {!r} for subject {!r}'
+                             .format(key, subject))
+
+    def remove_property(self, subject, key):
+        """Remove a single metadata property on *subject*.
+
+        Parameters
+        ----------
+        subject : int or str
+            The subject (UUID) to remove the property from.
+            UUIDs can be obtained with `Client.uuid`, `Port.uuid` and
+            `Client.get_uuid_for_client_name()`.
+        key : str
+            The key of the property to be removed.
+
+        See Also
+        --------
+        set_property
+        get_property
+        get_properties
+        get_all_properties
+        remove_properties
+        remove_all_properties
+        set_property_change_callback
+
+        """
+        subject = _uuid_parse(subject)
+        if _lib.jack_remove_property(self._ptr, subject, key.encode()) != 0:
+            raise ValueError('Unable to remove property {!r} for subject {!r}'
+                             .format(key, subject))
+
+    def remove_properties(self, subject):
+        """Remove all metadata properties on *subject*.
+
+        Parameters
+        ----------
+        subject : int or str
+            The subject (UUID) to remove all properties from.
+            UUIDs can be obtained with `Client.uuid`, `Port.uuid` and
+            `Client.get_uuid_for_client_name()`.
+
+        Returns
+        -------
+        int
+            The number of properties removed.
+
+        See Also
+        --------
+        set_property
+        get_property
+        get_properties
+        get_all_properties
+        remove_property
+        remove_all_properties
+        set_property_change_callback
+
+        """
+        subject = _uuid_parse(subject)
+        number = _lib.jack_remove_properties(self._ptr, subject)
+        if number < 0:
+            raise RuntimeError(
+                'Unable to remove properties for subject {!r}'.format(subject))
+        return number
+
+    def remove_all_properties(self):
+        """Remove all metadata properties.
+
+        .. warning::
+
+            This deletes all metadata managed by a running JACK server.
+            Data lost cannot be recovered (though it can be recreated by
+            new calls to `set_property()`).
+
+        See Also
+        --------
+        set_property
+        get_property
+        get_properties
+        get_all_properties
+        remove_property
+        remove_properties
+        set_property_change_callback
+
+        """
+        if _lib.jack_remove_all_properties(self._ptr) != 0:
+            raise RuntimeError('Unable to remove properties')
 
     def _callback(self, cdecl, **kwargs):
         """Wrapper for ffi.callback() that keeps callback alive."""
@@ -2363,6 +2546,140 @@ class CallbackExit(Exception):
     pass
 
 
+def _uuid_parse(uuid):
+    if isinstance(uuid, int):
+        return uuid
+    elif isinstance(uuid, str):
+        uuid_ptr = _ffi.new('jack_uuid_t*')
+        if _lib.jack_uuid_parse(uuid.encode(), uuid_ptr) != 0:
+            raise ValueError('Unable to parse UUID: {!r}'.format(uuid))
+        return uuid_ptr[0]
+    raise TypeError('Invalid UUID: {!r}'.format(uuid))
+
+
+def _description_to_dict(desc):
+    assert desc != _ffi.NULL
+    prop_dict = {}
+    for i in range(desc.property_cnt):
+        prop = desc.properties[i]
+        key = _decode(prop.key)
+        prop_dict[key] = (
+            _ffi.string(prop.data),
+            _decode(prop.type) if prop.type else '')
+    free_description_itself = 0
+    _lib.jack_free_description(desc, free_description_itself)
+    return prop_dict
+
+
+def get_property(subject, key):
+    """Get a metadata property on *subject*.
+
+    Parameters
+    ----------
+    subject : int or str
+        The subject (UUID) to get the property from.
+        UUIDs can be obtained with `Client.uuid`, `Port.uuid` and
+        `Client.get_uuid_for_client_name()`.
+    key : str
+        The key of the property.
+
+    Returns
+    -------
+    (bytes, str) or None
+        A tuple containing the value of the property and the type of the
+        property.  If *subject* doesn't have the property *key*,
+        ``None`` is returned.
+
+    See Also
+    --------
+    Client.set_property
+    get_properties
+    get_all_properties
+    Client.remove_property
+    Client.remove_properties
+    Client.remove_all_properties
+    set_property_change_callback
+
+    """
+    subject = _uuid_parse(subject)
+    data = _ffi.new('char**')
+    type = _ffi.new('char**')
+    if _lib.jack_get_property(subject, key.encode(), data, type) != 0:
+        return None
+    data = _ffi.gc(data[0], _lib.jack_free)
+    type = _ffi.gc(type[0], _lib.jack_free)
+    return _ffi.string(data), _decode(type) if type else ''
+
+
+def get_properties(subject):
+    """Get all metadata properties of *subject*.
+
+    Parameters
+    ----------
+    subject : int or str
+        The subject (UUID) to get all properties of.
+        UUIDs can be obtained with `Client.uuid`, `Port.uuid` and
+        `Client.get_uuid_for_client_name()`.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping property names to ``(value, type)`` tuples.
+
+    See Also
+    --------
+    Client.set_property
+    get_property
+    get_all_properties
+    Client.remove_property
+    Client.remove_properties
+    Client.remove_all_properties
+    set_property_change_callback
+
+    """
+    subject = _uuid_parse(subject)
+    desc = _ffi.new('jack_description_t*')
+    number = _lib.jack_get_properties(subject, desc)
+    if number < 0:
+        raise RuntimeError(
+            'Unable to get properties for subject {!r}'.format(subject))
+    assert number == desc.property_cnt
+    return _description_to_dict(desc)
+
+
+def get_all_properties():
+    """Get all properties for all subjects with metadata.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping UUIDs to nested dictionaries as returned by
+        `get_properties()`.
+
+    See Also
+    --------
+    Client.set_property
+    get_property
+    get_properties
+    Client.remove_property
+    Client.remove_properties
+    Client.remove_all_properties
+    set_property_change_callback
+
+    """
+    descs = _ffi.new('jack_description_t**')
+    number = _lib.jack_get_all_properties(descs)
+    if number < 0:
+        raise RuntimeError('Error getting all properties')
+    descs = _ffi.gc(descs[0], _lib.jack_free)
+    prop_dict = {}
+    for idx in range(number):
+        desc = descs + idx
+        assert desc.subject not in prop_dict
+        prop_dict[desc.subject] = _description_to_dict(desc)
+    return prop_dict
+
+
 def position2dict(pos):
     """Convert CFFI position struct to a dict."""
     assert pos.unique_1 == pos.unique_2
@@ -2480,7 +2797,3 @@ def _check(error_code, msg):
     """Check error code and raise JackError if non-zero."""
     if error_code:
         raise JackError('{0} ({1})'.format(msg, error_code))
-
-
-def _decode(cdata):
-    return _ffi.string(cdata).decode()
