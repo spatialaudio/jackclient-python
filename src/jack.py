@@ -146,7 +146,7 @@ class Client(object):
     @property
     def name(self):
         """The name of the JACK client (read-only)."""
-        return _ffi.string(_lib.jack_get_client_name(self._ptr)).decode()
+        return _decode(_lib.jack_get_client_name(self._ptr))
 
     @property
     def samplerate(self):
@@ -605,7 +605,7 @@ class Client(object):
         """
         @self._callback('JackInfoShutdownCallback')
         def callback_wrapper(code, reason, _):
-            callback(Status(code), _ffi.string(reason).decode())
+            callback(Status(code), _decode(reason))
 
         _lib.jack_on_info_shutdown(self._ptr, callback_wrapper, _ffi.NULL)
 
@@ -844,7 +844,7 @@ class Client(object):
         """
         @self._callback('JackClientRegistrationCallback')
         def callback_wrapper(name, register, _):
-            callback(_ffi.string(name).decode(), bool(register))
+            callback(_decode(name), bool(register))
 
         _check(_lib.jack_set_client_registration_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
@@ -1055,8 +1055,7 @@ class Client(object):
             else:
                 port = None
             try:
-                callback(port, _ffi.string(old_name).decode(),
-                         _ffi.string(new_name).decode())
+                callback(port, _decode(old_name), _decode(new_name))
             except CallbackExit:
                 return _FAILURE
             return _SUCCESS
@@ -1237,7 +1236,7 @@ class Client(object):
             self._ptr, name.encode()), _lib.jack_free)
         if not uuid:
             raise JackError('Unable to get session ID for {0!r}'.format(name))
-        return _ffi.string(uuid).decode()
+        return _decode(uuid)
 
     def get_client_name_by_uuid(self, uuid):
         """Get the client name for a session ID.
@@ -1250,7 +1249,7 @@ class Client(object):
             self._ptr, uuid.encode()), _lib.jack_free)
         if not name:
             raise JackError('Unable to get client name for {0!r}'.format(uuid))
-        return _ffi.string(name).decode()
+        return _decode(name)
 
     def get_port_by_name(self, name):
         """Get port by name.
@@ -1358,7 +1357,7 @@ class Client(object):
                 name = names[idx]
                 if not name:
                     break
-                ports.append(self.get_port_by_name(_ffi.string(name).decode()))
+                ports.append(self.get_port_by_name(_decode(name)))
                 idx += 1
         return ports
 
@@ -1425,7 +1424,7 @@ class Port(object):
     @property
     def name(self):
         """Full name of the JACK port (read-only)."""
-        return _ffi.string(_lib.jack_port_name(self._ptr)).decode()
+        return _decode(_lib.jack_port_name(self._ptr))
 
     @property
     def shortname(self):
@@ -1438,7 +1437,7 @@ class Port(object):
         `port_name_size()`, it will be truncated.
 
         """
-        return _ffi.string(_lib.jack_port_short_name(self._ptr)).decode()
+        return _decode(_lib.jack_port_short_name(self._ptr))
 
     @shortname.setter
     def shortname(self, shortname):
@@ -1454,7 +1453,7 @@ class Port(object):
         result = []
         if _lib.jack_port_get_aliases(self._ptr, aliasesptr) > 0:
             for i in 0, 1:
-                alias = _ffi.string(aliases[i]).decode()
+                alias = _decode(aliases[i])
                 if alias:
                     result.append(alias)
 
@@ -2385,7 +2384,7 @@ def version():
 
 def version_string():
     """Get human-readable JACK version."""
-    return _ffi.string(_lib.jack_get_version_string()).decode()
+    return _decode(_lib.jack_get_version_string())
 
 
 def client_name_size():
@@ -2460,7 +2459,7 @@ def _set_error_or_info_function(callback, setter):
     else:
         @_ffi.callback('void (*)(const char*)')
         def callback_wrapper(msg):
-            callback(_ffi.string(msg).decode())
+            callback(_decode(msg))
 
         _keepalive[setter] = callback_wrapper
     setter(callback_wrapper)
@@ -2473,3 +2472,7 @@ def _check(error_code, msg):
     """Check error code and raise JackError if non-zero."""
     if error_code:
         raise JackError('{0} ({1})'.format(msg, error_code))
+
+
+def _decode(cdata):
+    return _ffi.string(cdata).decode()
