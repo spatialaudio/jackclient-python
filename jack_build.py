@@ -240,6 +240,10 @@ size_t jack_midi_max_event_size(void* port_buffer);
 jack_midi_data_t* jack_midi_event_reserve(void* port_buffer, jack_nframes_t time, size_t data_size);
 int jack_midi_event_write(void* port_buffer, jack_nframes_t time, const jack_midi_data_t* data, size_t data_size);
 uint32_t jack_midi_get_lost_event_count(void* port_buffer);
+
+/* session.h */
+
+char* jack_client_get_uuid(jack_client_t* client);
 """)
 
 # Packed structure

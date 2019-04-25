@@ -149,6 +149,14 @@ class Client(object):
         return _decode(_lib.jack_get_client_name(self._ptr))
 
     @property
+    def uuid(self):
+        """The UUID of the JACK client (read-only)."""
+        uuid = _ffi.gc(_lib.jack_client_get_uuid(self._ptr), _lib.jack_free)
+        if not uuid:
+            raise JackError('Unable to get UUID')
+        return _ffi.string(uuid).decode()
+
+    @property
     def samplerate(self):
         """The sample rate of the JACK system (read-only)."""
         return _lib.jack_get_sample_rate(self._ptr)
