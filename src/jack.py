@@ -74,7 +74,10 @@ def _decode(cdata):
 # Get metadata constants from library
 for name in dir(_lib):
     if name.startswith('JACK_METADATA_'):
-        globals()[name[5:]] = _decode(getattr(_lib, name))
+        try:
+            globals()[name[5:]] = _decode(getattr(_lib, name))
+        except _ffi.error:
+            pass
 else:
     del name
 

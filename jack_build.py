@@ -277,12 +277,16 @@ typedef enum {
 } jack_property_change_t;
 typedef void (*JackPropertyChangeCallback)(jack_uuid_t subject, const char* key, jack_property_change_t change, void* arg);
 int jack_set_property_change_callback(jack_client_t* client, JackPropertyChangeCallback callback, void* arg);
-extern const char* JACK_METADATA_PRETTY_NAME;
-extern const char* JACK_METADATA_HARDWARE;
 extern const char* JACK_METADATA_CONNECTED;
-extern const char* JACK_METADATA_PORT_GROUP;
-extern const char* JACK_METADATA_ICON_SMALL;
+extern const char* JACK_METADATA_EVENT_TYPES;
+extern const char* JACK_METADATA_HARDWARE;
 extern const char* JACK_METADATA_ICON_LARGE;
+extern const char* JACK_METADATA_ICON_NAME;
+extern const char* JACK_METADATA_ICON_SMALL;
+extern const char* JACK_METADATA_ORDER;
+extern const char* JACK_METADATA_PORT_GROUP;
+extern const char* JACK_METADATA_PRETTY_NAME;
+extern const char* JACK_METADATA_SIGNAL_TYPE;
 """)
 
 # Packed structure
