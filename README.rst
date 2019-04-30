@@ -22,8 +22,7 @@ Requirements
 ------------
 
 Python:
-   Of course, you'll need Python_.
-   Any version where CFFI (see below) is supported should work.
+   Of course, you'll need Python_.  More specifically, you'll need Python 3.
    If you don't have Python installed yet, you should get one of the
    distributions which already include CFFI and NumPy (and many other useful
    things), e.g. Anaconda_ or WinPython_.
@@ -43,7 +42,7 @@ pip/setuptools:
 
 CFFI:
    The `C Foreign Function Interface for Python`_ is used to access the C-API
-   of the JACK library from within Python.  It supports CPython 2.6, 2.7, 3.x;
+   of the JACK library from within Python.  It is supported on CPython
    and is distributed with PyPy_.
    If it's not installed already, you should install it with your package
    manager (the package might be called ``python3-cffi`` or similar), or you can
