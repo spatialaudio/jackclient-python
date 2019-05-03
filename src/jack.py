@@ -2550,6 +2550,9 @@ class CallbackExit(Exception):
 
 
 def _uuid_parse(uuid):
+    if isinstance(uuid, (Client, Port)):
+        uuid = uuid.uuid
+
     if isinstance(uuid, int):
         return uuid
     elif isinstance(uuid, str):
