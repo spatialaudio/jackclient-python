@@ -540,10 +540,8 @@ class Client(object):
         effect in two process cycles.  If there are slow-sync clients
         and the transport is already rolling, it will enter the
         `STARTING` state and begin invoking their sync callbacks
-        (see `jack_set_sync_callback()`__) until ready.
+        (see `set_sync_callback()`) until ready.
         This function is realtime-safe.
-
-        __ http://jackaudio.org/files/docs/html/group__TransportControl.html
 
         Parameters
         ----------
@@ -558,6 +556,29 @@ class Client(object):
         """
         _check(_lib.jack_transport_reposition(self._ptr, position),
                'Error re-positioning transport')
+
+    def set_sync_timeout(self, timeout):
+        """Set the timeout value for slow-sync clients.
+
+        This timeout prevents unresponsive slow-sync clients from
+        completely halting the transport mechanism.  The default is two
+        seconds.  When the timeout expires, the transport starts
+        rolling, even if some slow-sync clients are still unready.
+        The *sync callbacks* of these clients continue being invoked,
+        giving them a chance to catch up.
+
+        Parameters
+        ----------
+        timeout : int
+            Delay (in microseconds) before the timeout expires.
+
+        See Also
+        --------
+        set_sync_callback
+
+        """
+        _check(_lib.jack_set_sync_timeout(self._ptr, timeout),
+               'Error setting sync timeout')
 
     def set_freewheel(self, onoff):
         """Start/Stop JACK's "freewheel" mode.
@@ -1174,6 +1195,67 @@ class Client(object):
         _check(_lib.jack_set_xrun_callback(
             self._ptr, callback_wrapper, _ffi.NULL),
             'Error setting xrun callback')
+
+    def set_sync_callback(self, callback):
+        """Register (or unregister) as a slow-sync client.
+
+        A slow-sync client is one that cannot respond immediately to
+        transport position changes.
+
+        The *callback* will be invoked at the first available
+        opportunity after its registration is complete.  If the client
+        is currently active this will be the following process cycle,
+        otherwise it will be the first cycle after calling `activate()`.
+        After that, it runs whenever some client requests a new
+        position, or the transport enters the `STARTING` state.
+        While the client is active, this callback is invoked just before
+        the *process callback* (see `set_process_callback()`) in the
+        same thread.
+
+        Clients that don't set a *sync callback* are assumed to be ready
+        immediately any time the transport wants to start.
+
+        Parameters
+        ----------
+        callback : callable or None
+
+            User-supplied function that returns ``True`` when the
+            slow-sync client is ready.  This realtime function must not
+            wait.  It must have this signature::
+
+                callback(state: int, pos: jack_position_t) -> bool
+
+            The *state* argument will be:
+
+            - `STOPPED` when a new position is requested;
+            - `STARTING` when the transport is waiting to start;
+            - `ROLLING` when the timeout has expired, and the position
+              is now a moving target.
+
+            The *pos* argument holds the new transport position using
+            the same structure as returned by
+            `transport_query_struct()`.
+
+            Setting *callback* to ``None`` declares that this
+            client no longer requires slow-sync processing.
+
+        See Also
+        --------
+        set_sync_timeout
+
+        """
+        if callback is None:
+            callback_wrapper = _ffi.NULL
+        else:
+
+            @self._callback('JackSyncCallback', error=False)
+            def callback_wrapper(state, pos, _):
+                return callback(state, pos)
+
+        _check(
+            _lib.jack_set_sync_callback(
+                self._ptr, callback_wrapper, _ffi.NULL),
+            'Error setting sync callback')
 
     def set_timebase_callback(self, callback=None, conditional=False):
         """Register as timebase master for the JACK subsystem.
