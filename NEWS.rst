@@ -1,3 +1,8 @@
+Version 0.5.0 (2019-07-18):
+ * drop Python 2 support
+ * support for metadata API, with the help of Christopher Arndt
+ * support for slow-sync clients
+
 Version 0.4.6 (2019-02-09):
  * ``midi_file_player.py`` example
 
