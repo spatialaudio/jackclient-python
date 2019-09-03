@@ -1747,7 +1747,7 @@ class Port(object):
 
     def unset_alias(self, alias):
         """Remove an alias for the JACK port.
-        
+
         If the alias doesn't exist this function will return an error.
 
         """
@@ -2598,6 +2598,9 @@ class TransportState(object):
 
     def __eq__(self, other):
         return self._code == other
+
+    def __hash__(self):
+        return hash(self._code)
 
     def __repr__(self):
         return 'jack.' + {
