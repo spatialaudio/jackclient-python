@@ -208,7 +208,7 @@ size_t jack_ringbuffer_write_space(const jack_ringbuffer_t* rb);
 
 /* transport.h */
 
-/* TODO: jack_release_timebase */
+int jack_release_timebase(jack_client_t* client);
 int jack_set_sync_callback(jack_client_t* client, JackSyncCallback sync_callback, void* arg);
 int jack_set_sync_timeout(jack_client_t* client, jack_time_t timeout);
 int jack_set_timebase_callback(jack_client_t* client, int conditional, JackTimebaseCallback timebase_callback, void* arg);

@@ -1257,6 +1257,34 @@ class Client(object):
                 self._ptr, callback_wrapper, _ffi.NULL),
             'Error setting sync callback')
 
+    def release_timebase(self):
+        """De-register as timebase master.
+
+        Should be called by the current timebase master to release
+        itself from that responsibility and to stop the callback
+        registered with `set_timebase_callback()` from being called.
+
+        If the timebase master releases the timebase or leaves the JACK
+        graph for any reason, the JACK engine takes over at the start of
+        the next process cycle. The transport state does not change. If
+        rolling, it continues to play, with frame numbers as the only
+        available position information.
+
+        Raises
+        ------
+        JackError
+            If the client is not the current timebase master or
+            releasing the timebase failed for another reason
+
+        See Also
+        --------
+        set_timebase_callback
+
+        """
+        _check(
+            _lib.jack_release_timebase(self._ptr),
+            'Error releasing timebase')
+
     def set_timebase_callback(self, callback=None, conditional=False):
         """Register as timebase master for the JACK subsystem.
 
