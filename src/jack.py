@@ -141,7 +141,7 @@ class Client(object):
         self._status = Status(status[0])
         if not self._ptr:
             raise JackError('Error initializing "{0}": {1}'.format(
-                name, self.status))
+                name, self.status), errno=status[0])
 
         self._inports = Ports(self, _AUDIO, _lib.JackPortIsInput)
         self._outports = Ports(self, _AUDIO, _lib.JackPortIsOutput)
@@ -411,7 +411,8 @@ class Client(object):
                                 destination.encode())
         if err == _errno.EEXIST:
             raise JackError('Connection {0!r} -> {1!r} '
-                            'already exists'.format(source, destination))
+                            'already exists'.format(source, destination),
+                            errno=err)
         _check(err,
                'Error connecting {0!r} -> {1!r}'.format(source, destination))
 
@@ -2642,7 +2643,18 @@ class TransportState(object):
 class JackError(Exception):
     """Exception for all kinds of JACK-related errors."""
 
-    pass
+    def __init__(self, msg, errno=None):
+        """Initialize new exception instance.
+
+        Parameters
+        ----------
+        errno : int, optional
+            The error or status code returned by the JACK library function,
+            which resulted in this exception being raised. Defaults to `None`.
+
+        """
+        super().__init__(msg)
+        self.errno = errno
 
 
 class CallbackExit(Exception):
@@ -2915,4 +2927,4 @@ _keepalive = {}
 def _check(error_code, msg):
     """Check error code and raise JackError if non-zero."""
     if error_code:
-        raise JackError('{0} ({1})'.format(msg, error_code))
+        raise JackError('{0} ({1})'.format(msg, error_code), errno=error_code)
