@@ -1,7 +1,7 @@
 from cffi import FFI
 
 ffibuilder = FFI()
-ffibuilder.set_source("_jack", None)
+ffibuilder.set_source('_jack', None)
 ffibuilder.cdef("""
 
 /* types.h */
@@ -316,5 +316,5 @@ struct _jack_position {
 };
 """, packed=True)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     ffibuilder.compile(verbose=True)
