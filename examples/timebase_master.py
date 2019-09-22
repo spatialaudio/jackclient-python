@@ -110,7 +110,7 @@ def main(args=None):
     try:
         beats_per_bar, beat_type = (int(x) for x in args.meter.split('/', 1))
     except (TypeError, ValueError):
-        print("Error: invalid meter: %s\n" % args.meter)
+        print("Error: invalid meter: {}\n".format(args.meter))
         ap.print_help()
         return 2
 
@@ -123,7 +123,7 @@ def main(args=None):
             ticks_per_beat=args.ticks_per_beat,
             debug=args.debug)
     except jack.JackError as exc:
-        return "Could not create timebase master JACK client: %s" % exc
+        return "Could not create timebase master JACK client: {}".format(exc)
 
     with tbmaster:
         if tbmaster.become_timebase_master(args.conditional):
