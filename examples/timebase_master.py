@@ -103,7 +103,7 @@ def main(args=None):
         nargs='?',
         type=float,
         default=120.0,
-        help="Tempo in beats per minute (default: %(default)s)")
+        help="Tempo in beats per minute (0.1-300.0, default: %(default)s)")
 
     args = ap.parse_args(args if args is not None else sys.argv[1:])
 
@@ -117,7 +117,7 @@ def main(args=None):
     try:
         tbmaster = TimebaseMasterClient(
             args.client_name,
-            bpm=max(0.0, min(300.0, args.tempo)),
+            bpm=max(0.1, min(300.0, args.tempo)),
             beats_per_bar=beats_per_bar,
             beat_type=beat_type,
             ticks_per_beat=args.ticks_per_beat,
