@@ -15,8 +15,8 @@ class TimebaseMasterClient(jack.Client):
     def __init__(self, name, *, bpm=120.0, beats_per_bar=4, beat_type=4,
                  ticks_per_beat=1920, conditional=False, debug=False, **kw):
         super().__init__(name, **kw)
-        self.beats_per_bar = beats_per_bar
-        self.beat_type = beat_type
+        self.beats_per_bar = int(beats_per_bar)
+        self.beat_type = int(beat_type)
         self.bpm = bpm
         self.conditional = conditional
         self.debug = debug
@@ -35,20 +35,20 @@ class TimebaseMasterClient(jack.Client):
         # Adapted from:
         # https://github.com/jackaudio/jack2/blob/develop/example-clients/transport.c#L66
         if new_pos:
-            pos.beats_per_bar = self.beats_per_bar
+            pos.beats_per_bar = float(self.beats_per_bar)
             pos.beats_per_minute = self.bpm
-            pos.beat_type = self.beat_type
-            pos.ticks_per_beat = self.ticks_per_beat
+            pos.beat_type = float(self.beat_type)
+            pos.ticks_per_beat = float(self.ticks_per_beat)
             pos.valid |= jack._lib.JackPositionBBT
 
             minutes = pos.frame / (pos.frame_rate * 60.0)
-            abs_tick = minutes * pos.beats_per_minute * pos.ticks_per_beat
+            abs_tick = minutes * self.bpm * self.ticks_per_beat
             abs_beat = abs_tick / self.ticks_per_beat
 
-            pos.bar = int(abs_beat / pos.beats_per_bar)
-            pos.beat = int(abs_beat - (pos.bar * pos.beats_per_bar) + 1)
-            pos.tick = int(abs_tick - (abs_beat * pos.ticks_per_beat))
-            pos.bar_start_tick = pos.bar * pos.beats_per_bar * pos.ticks_per_beat
+            pos.bar = int(abs_beat / self.beats_per_bar)
+            pos.beat = int(abs_beat - (pos.bar * self.beats_per_bar) + 1)
+            pos.tick = int(abs_tick - (abs_beat * self.ticks_per_beat))
+            pos.bar_start_tick = pos.bar * self.beats_per_bar * self.ticks_per_beat
             pos.bar += 1  # adjust start to bar 1
         else:
             # Compute BBT info based on previous period.
