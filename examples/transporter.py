@@ -33,7 +33,7 @@ def main(args=None):
         choices=['query', 'rewind', 'start', 'status', 'stop', 'toggle'],
         help="Transport command")
 
-    args = ap.parse_args(args if args is not None else sys.argv[1:])
+    args = ap.parse_args(args)
 
     try:
         client = jack.Client(args.client_name)

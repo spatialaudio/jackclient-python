@@ -105,7 +105,7 @@ def main(args=None):
         default=120.0,
         help="Tempo in beats per minute (0.1-300.0, default: %(default)s)")
 
-    args = ap.parse_args(args if args is not None else sys.argv[1:])
+    args = ap.parse_args(args)
 
     try:
         beats_per_bar, beat_type = (int(x) for x in args.meter.split('/', 1))
