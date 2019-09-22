@@ -44,10 +44,10 @@ def main(args=None):
     result = 0
 
     if args.command == 'status':
-        print("JACK transport is {}.".format(STATE_LABELS[state._code]))
+        print("JACK transport is {}.".format(STATE_LABELS[state]))
         result = 1 if state == jack.STOPPED else 0
     elif args.command == 'query':
-        print("State: {}".format(STATE_LABELS[state._code]))
+        print("State: {}".format(STATE_LABELS[state]))
         info = client.transport_query()[1]
 
         for field in sorted(info):
