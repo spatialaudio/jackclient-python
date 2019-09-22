@@ -13,9 +13,8 @@ import jack
 
 
 class TimebaseMasterClient(jack.Client):
-    def __init__(self, name, bpm=120.0, meter='4/4', beats_per_bar=4,
-                 beat_type=4, ticks_per_beat=1920, conditional=False,
-                 debug=False, **kw):
+    def __init__(self, name, bpm=120.0, beats_per_bar=4, beat_type=4,
+                 ticks_per_beat=1920, conditional=False, debug=False, **kw):
         super().__init__(name, **kw)
         self.beats_per_bar = beats_per_bar
         self.beat_type = beat_type
