@@ -36,7 +36,7 @@ class TimebaseMasterClient(jack.Client):
             pos.beats_per_minute = self.bpm
             pos.beat_type = float(self.beat_type)
             pos.ticks_per_beat = float(self.ticks_per_beat)
-            pos.valid |= jack._lib.JackPositionBBT
+            pos.valid = jack._lib.JackPositionBBT
 
             minutes = pos.frame / (pos.frame_rate * 60.0)
             abs_tick = minutes * self.bpm * self.ticks_per_beat
