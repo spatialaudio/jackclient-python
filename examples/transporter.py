@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-#
-#  transporter.py
-#
 """Query or change the JACK transport state."""
 
 import argparse

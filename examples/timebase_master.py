@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-#
-#  timebase_master.py
-#
 """A simple JACK timebase master."""
 
 import argparse
