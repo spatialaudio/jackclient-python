@@ -82,6 +82,43 @@ else:
     del name
 
 
+class JackError(Exception):
+    """Exception for all kinds of JACK-related errors."""
+
+    def __init__(self, msg, errno=None):
+        """Initialize new exception instance.
+
+        Parameters
+        ----------
+        errno : int, optional
+            The error code returned by the JACK library function, which
+            resulted in this exception being raised. Defaults to `None`.
+            This will be accessible via the `errno` attribute of the
+            exception instance.
+
+        """
+        super().__init__(msg)
+        self.errno = errno
+
+
+class JackOpenError(JackError):
+    """Exception raised when no connection to the JACK server could opened."""
+
+    def __init__(self, msg, status):
+        """Initialize new exception instance.
+
+        Parameters
+        ----------
+        status : int
+            A `Status` instance representing the status information received
+            by the `jack_client_open` JACK library call. This will be
+            accessible via the `status` attribute of the exception instance.
+
+        """
+        super().__init__(msg)
+        self.status = status
+
+
 class Client(object):
     """A client that can connect to the JACK audio server."""
 
@@ -140,8 +177,8 @@ class Client(object):
                                           *optargs)
         self._status = Status(status[0])
         if not self._ptr:
-            raise JackError('Error initializing "{0}": {1}'.format(
-                name, self.status), errno=status[0])
+            raise JackOpenError('Error initializing "{0}": {1}'
+                                .format(name, self.status), status=self.status)
 
         self._inports = Ports(self, _AUDIO, _lib.JackPortIsInput)
         self._outports = Ports(self, _AUDIO, _lib.JackPortIsOutput)
@@ -2639,22 +2676,6 @@ class TransportState(object):
             _lib.JackTransportNetStarting: 'NETSTARTING',
         }[self._code]
 
-
-class JackError(Exception):
-    """Exception for all kinds of JACK-related errors."""
-
-    def __init__(self, msg, errno=None):
-        """Initialize new exception instance.
-
-        Parameters
-        ----------
-        errno : int, optional
-            The error or status code returned by the JACK library function,
-            which resulted in this exception being raised. Defaults to `None`.
-
-        """
-        super().__init__(msg)
-        self.errno = errno
 
 
 class CallbackExit(Exception):
