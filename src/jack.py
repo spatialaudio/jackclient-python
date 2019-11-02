@@ -109,9 +109,9 @@ class JackOpenError(JackError):
 
         Parameters
         ----------
-        status : int
-            A `Status` instance representing the status information received
-            by the `jack_client_open` JACK library call. This will be
+        status : :class:`Status`
+            A :class:`Status` instance representing the status information
+            received by the `jack_client_open` JACK library call. This will be
             accessible via the `status` attribute of the exception instance.
 
         """
