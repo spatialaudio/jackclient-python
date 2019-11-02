@@ -159,6 +159,11 @@ class Client(object):
             Pass a SessionID Token. This allows the sessionmanager to
             identify the client again.
 
+        Raises
+        ------
+        JackOpenError
+            If the session with the JACK server could not be opened.
+
         """
         status = _ffi.new('jack_status_t*')
         options = _lib.JackNullOption
@@ -209,7 +214,14 @@ class Client(object):
 
     @property
     def uuid(self):
-        """The UUID of the JACK client (read-only)."""
+        """The UUID of the JACK client (read-only).
+
+        Raises
+        ------
+        JackError
+            If getting the UUID fails.
+
+        """
         uuid = _ffi.gc(_lib.jack_client_get_uuid(self._ptr), _lib.jack_free)
         if not uuid:
             raise JackError('Unable to get UUID')
@@ -438,6 +450,12 @@ class Client(object):
         See Also
         --------
         OwnPort.connect, disconnect
+
+        Raises
+        ------
+        JackError
+            If there is already an existing connection between *source* and
+            *destination* or the connection can not be established.
 
         """
         if isinstance(source, Port):
@@ -1438,6 +1456,11 @@ class Client(object):
         The session manager needs this to reassociate a client name to
         the session ID.
 
+        Raises
+        ------
+        JackError
+            If no client with the given name exists.
+
         """
         uuid = _ffi.gc(_lib.jack_get_uuid_for_client_name(
             self._ptr, name.encode()), _lib.jack_free)
@@ -1451,6 +1474,11 @@ class Client(object):
         In order to snapshot the graph connections, the session manager
         needs to map session IDs to client names.
 
+        Raises
+        ------
+        JackError
+            If no client with the given UUID exists.
+
         """
         name = _ffi.gc(_lib.jack_get_client_name_by_uuid(
             self._ptr, uuid.encode()), _lib.jack_free)
@@ -1463,6 +1491,11 @@ class Client(object):
 
         Given a full port name, this returns a `Port`, `MidiPort`,
         `OwnPort` or `OwnMidiPort` object.
+
+        Raises
+        ------
+        JackError
+            If no port with the given name exists.
 
         """
         port_ptr = _lib.jack_port_by_name(self._ptr, name.encode())
@@ -1678,7 +1711,15 @@ class Client(object):
         return callback_decorator
 
     def _register_port(self, name, porttype, is_terminal, is_physical, flags):
-        """Create a new port."""
+        """Create a new port.
+
+        Raises
+        ------
+        JackError
+            If the port can not be registered, e.g. because the name is
+            non-unique or too long.
+
+        """
         if is_terminal:
             flags |= _lib.JackPortIsTerminal
         if is_physical:
@@ -2329,6 +2370,12 @@ class RingBuffer(object):
             size (rounded up to the next power of 2), but one byte is
             reserved for internal use.  Use `write_space` to
             determine the actual size available for writing.
+
+
+        Raises
+        ------
+        JackError
+            If the rightbufefr could not be allocated.
 
         """
         ptr = _lib.jack_ringbuffer_create(size)
