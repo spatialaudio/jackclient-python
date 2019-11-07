@@ -2819,6 +2819,33 @@ def position2dict(pos):
     return dict((k, getattr(pos, k)) for k in keys)
 
 
+def dict2position(d, pos, *, invalidate=True):
+    """Assign all values from a dict to a CFFI position struct.
+
+    The struct is not reset to zero before assigning to its fields, but
+    by default (``invalidate=True``), the ``pos.valid`` field is reset.
+
+    See `position2dict()`.
+
+    """
+    assert pos.unique_1 == pos.unique_2
+    if invalidate:
+        pos.valid = 0x0
+    for k, v in d.items():
+        setattr(pos, k, v)
+        if k in {'bar', 'beat', 'tick', 'bar_start_tick', 'beats_per_bar',
+                 'beat_type', 'ticks_per_beat', 'beats_per_minute'}:
+            pos.valid |= _lib.JackPositionBBT
+        elif k in {'frame_time', 'next_time'}:
+            pos.valid |= _lib.JackPositionTimecode
+        elif k == 'bbt_offset':
+            pos.valid |= _lib.JackBBTFrameOffset
+        elif k == 'audio_frames_per_video_frame':
+            pos.valid |= _lib.JackAudioVideoRatio
+        elif k == 'video_offset':
+            pos.valid |= _lib.JackVideoFrameOffset
+
+
 def version():
     """Get tuple of major/minor/micro/protocol version."""
     v = _ffi.new('int[4]')
