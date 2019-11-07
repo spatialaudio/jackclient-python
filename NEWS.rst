@@ -1,3 +1,6 @@
+Version 0.5.1 (2019-11-07):
+ * `jack.Client.release_timebase()`, thanks to Christopher Arndt
+
 Version 0.5.0 (2019-07-18):
  * drop Python 2 support
  * support for metadata API, with the help of Christopher Arndt
