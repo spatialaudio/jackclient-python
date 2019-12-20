@@ -63,6 +63,17 @@ PROPERTY_CHANGED = _lib.PropertyChanged
 PROPERTY_DELETED = _lib.PropertyDeleted
 """A property was deleted.  See `Client.set_property_change_callback()`."""
 
+POSITION_BBT = _lib.JackPositionBBT
+"""Bar, Beat, Tick."""
+POSITION_TIMECODE = _lib.JackPositionTimecode
+"""External timecode."""
+POSITION_BBT_FRAME_OFFSET = _lib.JackBBTFrameOffset
+"""Frame offset of BBT information."""
+POSITION_AUDIO_VIDEO_RATIO = _lib.JackAudioVideoRatio
+"""Audio frames per video frame."""
+POSITION_VIDEO_FRAME_OFFSET = _lib.JackVideoFrameOffset
+"""Frame offset of first video frame."""
+
 _SUCCESS = 0
 _FAILURE = 1
 

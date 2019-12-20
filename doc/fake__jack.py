@@ -28,6 +28,12 @@ class Fake(object):
     PropertyChanged = 1
     PropertyDeleted = 2
 
+    JackPositionBBT = 0x10
+    JackPositionTimecode = 0x20
+    JackBBTFrameOffset = 0x40
+    JackAudioVideoRatio = 0x80
+    JackVideoFrameOffset = 0x100
+
     def dlopen(self, _):
         return self
 
