@@ -85,38 +85,55 @@ else:
 class JackError(Exception):
     """Exception for all kinds of JACK-related errors."""
 
-    def __init__(self, msg, errno=None):
-        """Initialize new exception instance.
 
-        Parameters
+class JackErrorCode(JackError):
+
+    def __init__(self, message, code):
+        """Exception for JACK errors with an error code.
+
+        Subclass of `JackError`.
+
+        The following attributes are available:
+
+        Attributes
         ----------
-        errno : int, optional
-            The error code returned by the JACK library function, which
-            resulted in this exception being raised. Defaults to `None`.
-            This will be accessible via the `errno` attribute of the
-            exception instance.
+        message
+            Error message.
+        code
+            The error code returned by the JACK library function which
+            resulted in this exception being raised.
 
         """
-        super().__init__(msg)
-        self.errno = errno
+        self.message = message
+        self.code = code
+
+    def __str__(self):
+        return '{} ({})'.format(self.message, self.code)
 
 
 class JackOpenError(JackError):
-    """Exception raised when no connection to the JACK server could opened."""
 
-    def __init__(self, msg, status):
-        """Initialize new exception instance.
+    def __init__(self, name, status):
+        """Exception raised for errors while creating a JACK client.
 
-        Parameters
+        Subclass of `JackError`.
+
+        The following attributes are available:
+
+        Attributes
         ----------
-        status : :class:`Status`
+        name
+            Requested client name.
+        status
             A :class:`Status` instance representing the status information
-            received by the `jack_client_open` JACK library call. This will be
-            accessible via the `status` attribute of the exception instance.
+            received by the ``jack_client_open()`` JACK library call.
 
         """
-        super().__init__(msg)
+        self.name = name
         self.status = status
+
+    def __str__(self):
+        return 'Error initializing "{}": {}'.format(self.name, self.status)
 
 
 class Client(object):
@@ -182,8 +199,7 @@ class Client(object):
                                           *optargs)
         self._status = Status(status[0])
         if not self._ptr:
-            raise JackOpenError('Error initializing "{0}": {1}'
-                                .format(name, self.status), status=self.status)
+            raise JackOpenError(name, self._status)
 
         self._inports = Ports(self, _AUDIO, _lib.JackPortIsInput)
         self._outports = Ports(self, _AUDIO, _lib.JackPortIsOutput)
@@ -465,9 +481,9 @@ class Client(object):
         err = _lib.jack_connect(self._ptr, source.encode(),
                                 destination.encode())
         if err == _errno.EEXIST:
-            raise JackError('Connection {0!r} -> {1!r} '
-                            'already exists'.format(source, destination),
-                            errno=err)
+            raise JackErrorCode('Connection {0!r} -> {1!r} '
+                                'already exists'.format(source, destination),
+                                err)
         _check(err,
                'Error connecting {0!r} -> {1!r}'.format(source, destination))
 
@@ -2995,4 +3011,4 @@ _keepalive = {}
 def _check(error_code, msg):
     """Check error code and raise JackError if non-zero."""
     if error_code:
-        raise JackError('{0} ({1})'.format(msg, error_code), errno=error_code)
+        raise JackErrorCode(msg, error_code)
