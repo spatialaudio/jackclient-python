@@ -1,19 +1,9 @@
 #!/usr/bin/env python3
 """Query or change the JACK transport state."""
-
 import argparse
 import string
-import sys
 
 import jack
-
-
-STATE_LABELS = {
-    jack.ROLLING: "rolling",
-    jack.STOPPED: "stopped",
-    jack.STARTING: "starting",
-    jack.NETSTARTING: "waiting for network sync",
-}
 
 
 def main(args=None):
@@ -22,34 +12,34 @@ def main(args=None):
         '-c', '--client-name',
         metavar='NAME',
         default='transporter',
-        help="JACK client name (default: %(default)s)")
+        help='JACK client name (default: %(default)s)')
     ap.add_argument(
         'command',
         nargs='?',
         default='status',
         choices=['query', 'rewind', 'start', 'status', 'stop', 'toggle'],
-        help="Transport command")
+        help='transport command')
 
     args = ap.parse_args(args)
 
     try:
         client = jack.Client(args.client_name)
     except jack.JackError as exc:
-        return "Could not create JACK client: {}".format(exc)
+        ap.exit('Could not create JACK client: {}'.format(exc))
 
     state = client.transport_state
     result = 0
 
     if args.command == 'status':
-        print("JACK transport is {}.".format(STATE_LABELS[state]))
+        print('JACK transport state is {}.'.format(state))
         result = 1 if state == jack.STOPPED else 0
     elif args.command == 'query':
-        print("State: {}".format(STATE_LABELS[state]))
+        print('State: {}'.format(state))
         info = client.transport_query()[1]
 
         for field in sorted(info):
             label = string.capwords(field.replace('_', ' '))
-            print("{}: {}".format(label, info[field]))
+            print('{}: {}'.format(label, info[field]))
 
         result = 1 if state == jack.STOPPED else 0
     elif args.command == 'start':
@@ -67,8 +57,8 @@ def main(args=None):
         client.transport_frame = 0
 
     client.close()
-    return result
+    ap.exit(result)
 
 
 if __name__ == '__main__':
-    sys.exit(main() or 0)
+    main()
