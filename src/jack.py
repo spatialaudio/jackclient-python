@@ -82,6 +82,60 @@ else:
     del name
 
 
+class JackError(Exception):
+    """Exception for all kinds of JACK-related errors."""
+
+
+class JackErrorCode(JackError):
+
+    def __init__(self, message, code):
+        """Exception for JACK errors with an error code.
+
+        Subclass of `JackError`.
+
+        The following attributes are available:
+
+        Attributes
+        ----------
+        message
+            Error message.
+        code
+            The error code returned by the JACK library function which
+            resulted in this exception being raised.
+
+        """
+        self.message = message
+        self.code = code
+
+    def __str__(self):
+        return '{} ({})'.format(self.message, self.code)
+
+
+class JackOpenError(JackError):
+
+    def __init__(self, name, status):
+        """Exception raised for errors while creating a JACK client.
+
+        Subclass of `JackError`.
+
+        The following attributes are available:
+
+        Attributes
+        ----------
+        name
+            Requested client name.
+        status
+            A :class:`Status` instance representing the status information
+            received by the ``jack_client_open()`` JACK library call.
+
+        """
+        self.name = name
+        self.status = status
+
+    def __str__(self):
+        return 'Error initializing "{}": {}'.format(self.name, self.status)
+
+
 class Client(object):
     """A client that can connect to the JACK audio server."""
 
@@ -122,6 +176,11 @@ class Client(object):
             Pass a SessionID Token. This allows the sessionmanager to
             identify the client again.
 
+        Raises
+        ------
+        JackOpenError
+            If the session with the JACK server could not be opened.
+
         """
         status = _ffi.new('jack_status_t*')
         options = _lib.JackNullOption
@@ -140,8 +199,7 @@ class Client(object):
                                           *optargs)
         self._status = Status(status[0])
         if not self._ptr:
-            raise JackError('Error initializing "{0}": {1}'.format(
-                name, self.status))
+            raise JackOpenError(name, self._status)
 
         self._inports = Ports(self, _AUDIO, _lib.JackPortIsInput)
         self._outports = Ports(self, _AUDIO, _lib.JackPortIsOutput)
@@ -172,7 +230,14 @@ class Client(object):
 
     @property
     def uuid(self):
-        """The UUID of the JACK client (read-only)."""
+        """The UUID of the JACK client (read-only).
+
+        Raises
+        ------
+        JackError
+            If getting the UUID fails.
+
+        """
         uuid = _ffi.gc(_lib.jack_client_get_uuid(self._ptr), _lib.jack_free)
         if not uuid:
             raise JackError('Unable to get UUID')
@@ -402,6 +467,12 @@ class Client(object):
         --------
         OwnPort.connect, disconnect
 
+        Raises
+        ------
+        JackError
+            If there is already an existing connection between *source* and
+            *destination* or the connection can not be established.
+
         """
         if isinstance(source, Port):
             source = source.name
@@ -410,8 +481,9 @@ class Client(object):
         err = _lib.jack_connect(self._ptr, source.encode(),
                                 destination.encode())
         if err == _errno.EEXIST:
-            raise JackError('Connection {0!r} -> {1!r} '
-                            'already exists'.format(source, destination))
+            raise JackErrorCode('Connection {0!r} -> {1!r} '
+                                'already exists'.format(source, destination),
+                                err)
         _check(err,
                'Error connecting {0!r} -> {1!r}'.format(source, destination))
 
@@ -1400,6 +1472,11 @@ class Client(object):
         The session manager needs this to reassociate a client name to
         the session ID.
 
+        Raises
+        ------
+        JackError
+            If no client with the given name exists.
+
         """
         uuid = _ffi.gc(_lib.jack_get_uuid_for_client_name(
             self._ptr, name.encode()), _lib.jack_free)
@@ -1413,6 +1490,11 @@ class Client(object):
         In order to snapshot the graph connections, the session manager
         needs to map session IDs to client names.
 
+        Raises
+        ------
+        JackError
+            If no client with the given UUID exists.
+
         """
         name = _ffi.gc(_lib.jack_get_client_name_by_uuid(
             self._ptr, uuid.encode()), _lib.jack_free)
@@ -1425,6 +1507,11 @@ class Client(object):
 
         Given a full port name, this returns a `Port`, `MidiPort`,
         `OwnPort` or `OwnMidiPort` object.
+
+        Raises
+        ------
+        JackError
+            If no port with the given name exists.
 
         """
         port_ptr = _lib.jack_port_by_name(self._ptr, name.encode())
@@ -1640,7 +1727,15 @@ class Client(object):
         return callback_decorator
 
     def _register_port(self, name, porttype, is_terminal, is_physical, flags):
-        """Create a new port."""
+        """Create a new port.
+
+        Raises
+        ------
+        JackError
+            If the port can not be registered, e.g. because the name is
+            non-unique or too long.
+
+        """
         if is_terminal:
             flags |= _lib.JackPortIsTerminal
         if is_physical:
@@ -2292,6 +2387,12 @@ class RingBuffer(object):
             reserved for internal use.  Use `write_space` to
             determine the actual size available for writing.
 
+
+        Raises
+        ------
+        JackError
+            If the rightbufefr could not be allocated.
+
         """
         ptr = _lib.jack_ringbuffer_create(size)
         if not ptr:
@@ -2639,11 +2740,6 @@ class TransportState(object):
         }[self._code]
 
 
-class JackError(Exception):
-    """Exception for all kinds of JACK-related errors."""
-
-    pass
-
 
 class CallbackExit(Exception):
     """To be raised in a callback function to signal failure.
@@ -2915,4 +3011,4 @@ _keepalive = {}
 def _check(error_code, msg):
     """Check error code and raise JackError if non-zero."""
     if error_code:
-        raise JackError('{0} ({1})'.format(msg, error_code))
+        raise JackErrorCode(msg, error_code)
