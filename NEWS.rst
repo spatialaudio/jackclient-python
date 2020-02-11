@@ -1,3 +1,10 @@
+Version 0.5.2 (2020-02-11):
+ * new module constants: ``jack.POSITION_*``
+ * new examples: ``timebase_master.py`` and ``transporter.py``,
+   thanks to Christopher Arndt
+ * new `jack.JackError` subclasses: `jack.JackErrorCode` and `jack.JackOpenError`,
+   thanks to Christopher Arndt
+
 Version 0.5.1 (2019-11-07):
  * `jack.Client.release_timebase()`, thanks to Christopher Arndt
 
