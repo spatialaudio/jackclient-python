@@ -69,7 +69,7 @@ master_doc = 'index'
 # General information about the project.
 authors = 'Matthias Geier'
 project = 'JACK Audio Connection Kit (JACK) Client for Python'
-copyright = '2019, ' + authors
+copyright = '2020, ' + authors
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
