@@ -1783,12 +1783,12 @@ class Client(object):
         """Create appropriate port object for a given port pointer."""
         porttype = _ffi.string(_lib.jack_port_type(ptr))
         if porttype == _AUDIO:
-            port = OwnPort(ptr, self) if self.owns(ptr) else Port(ptr)
+            cls = OwnPort if self.owns(ptr) else Port
         elif porttype == _MIDI:
-            port = OwnMidiPort(ptr, self) if self.owns(ptr) else MidiPort(ptr)
+            cls = OwnMidiPort if self.owns(ptr) else MidiPort
         else:
             assert False
-        return port
+        return cls(ptr, self)
 
 
 class Port(object):
@@ -1817,8 +1817,9 @@ class Port(object):
 
     """
 
-    def __init__(self, port_ptr):
+    def __init__(self, port_ptr, client):
         self._ptr = port_ptr
+        self._client = client
 
     def __repr__(self):
         return "jack.{0.__class__.__name__}('{0.name}')".format(self)
@@ -1851,7 +1852,8 @@ class Port(object):
 
     @shortname.setter
     def shortname(self, shortname):
-        _check(_lib.jack_port_set_name(self._ptr, shortname.encode()),
+        _check(_lib.jack_port_rename(self._client._ptr, self._ptr,
+                                     shortname.encode()),
                'Error setting port name')
 
     @property
@@ -1977,10 +1979,6 @@ class OwnPort(Port):
     `Client.outports`, `Client.midi_inports` and `Client.midi_outports`.
 
     """
-
-    def __init__(self, port_ptr, client):
-        Port.__init__(self, port_ptr)
-        self._client = client
 
     @property
     def number_of_connections(self):
