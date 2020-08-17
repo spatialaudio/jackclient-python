@@ -18,6 +18,8 @@ jobs:
           jack: jackd1
         - os: macos-latest
           python-version: "3.10"
+        - os: windows-latest
+          python-version: "3.10"
     runs-on: ${{ matrix.os }}
     steps:
     - name: Install JACK on Ubuntu
@@ -29,7 +31,17 @@ jobs:
       if: startsWith(matrix.os, 'macos')
       run: |
         brew install jack
-    - name: Start jackd with "dummy" backend
+    - name: Install JACK on Windows
+      if: startsWith(matrix.os, 'windows')
+      run: |
+        choco install --no-progress jack
+    - name: Start jackd with "dummy" backend (Windows)
+      if: startsWith(matrix.os, 'windows')
+      working-directory: "C:\\Program Files\\JACK2"
+      run: |
+        cmd /c "start /b jackd --no-realtime -d dummy"
+    - name: Start jackd with "dummy" backend (non-Windows)
+      if: ${{ !startsWith(matrix.os, 'windows') }}
       run: |
         jackd --no-realtime -d dummy &
     - name: Set up Python ${{ matrix.python-version }}
