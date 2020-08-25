@@ -15,9 +15,6 @@ License:
 .. image:: https://badge.fury.io/py/JACK-Client.svg
    :target: https://pypi.org/project/JACK-Client/
 
-.. image:: https://repology.org/badge/vertical-allrepos/python:jack-client.svg
-   :target: https://repology.org/project/python:jack-client
-
 Requirements
 ------------
 
