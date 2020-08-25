@@ -46,3 +46,24 @@ jobs:
     - name: Run tests
       run: |
         python -m pytest
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Double-check Python version
+      run: |
+        python --version
+    - uses: actions/checkout@v2
+    - name: Install doc dependencies
+      run: |
+        python -m pip install -r doc/requirements.txt
+    - name: Create HTML docs
+      run: |
+        python -m sphinx doc _build/html -d _doctrees -W -b html
+    - name: Check for broken links
+      run: |
+        python -m sphinx doc _build/linkcheck -d _doctrees -W -b linkcheck
