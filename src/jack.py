@@ -605,8 +605,7 @@ class Client(object):
             See the `JACK transport documentation`__ for the available
             fields.
 
-            __ http://jackaudio.org/files/docs/html/
-               structjack__position__t.html
+            __ https://jackaudio.org/api/structjack__position__t.html
 
         See Also
         --------

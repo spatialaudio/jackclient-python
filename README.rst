@@ -4,7 +4,7 @@ JACK Audio Connection Kit (JACK) Client for Python
 This Python module provides bindings for the JACK_ library.
 
 Documentation:
-   http://jackclient-python.readthedocs.io/
+   https://jackclient-python.readthedocs.io/
 
 Code:
    https://github.com/spatialaudio/jackclient-python/
@@ -13,10 +13,10 @@ License:
    MIT -- see the file ``LICENSE`` for details.
 
 .. image:: https://badge.fury.io/py/JACK-Client.svg
-   :target: https://pypi.python.org/pypi/JACK-Client/
+   :target: https://pypi.org/project/JACK-Client/
 
 .. image:: https://repology.org/badge/vertical-allrepos/python:jack-client.svg
-   :target: https://repology.org/metapackage/python:jack-client
+   :target: https://repology.org/project/python:jack-client
 
 Requirements
 ------------
@@ -71,14 +71,14 @@ NumPy (optional):
 
       python3 -m pip install NumPy --user
 
-.. _JACK: http://jackaudio.org/
-.. _NumPy: http://www.numpy.org/
+.. _JACK: https://jackaudio.org/
+.. _NumPy: https://numpy.org/
 .. _Python: https://www.python.org/
-.. _Anaconda: https://www.anaconda.com/download/
+.. _Anaconda: https://www.anaconda.com/products/individual#Downloads
 .. _WinPython: http://winpython.github.io/
-.. _C Foreign Function Interface for Python: http://cffi.readthedocs.org/
-.. _PyPy: http://pypy.org/
-.. _JACK download page: http://jackaudio.org/downloads/
+.. _C Foreign Function Interface for Python: https://cffi.readthedocs.org/
+.. _PyPy: https://www.pypy.org/
+.. _JACK download page: https://jackaudio.org/downloads/
 .. _pip installation: https://pip.pypa.io/en/latest/installing/
 
 Installation
