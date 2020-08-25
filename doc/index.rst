@@ -1,5 +1,3 @@
-.. default-role:: py:obj
-
 .. include:: ../README.rst
 
 .. only:: html
@@ -10,8 +8,6 @@
    For more examples, have a look at the :doc:`examples`.
 
 .. include:: ../CONTRIBUTING.rst
-
-.. default-role:: any
 
 API Documentation
 -----------------
@@ -30,11 +26,7 @@ API Documentation
 Version History
 ---------------
 
-.. default-role:: py:obj
-
 .. include:: ../NEWS.rst
-
-.. default-role:: any
 
 Other Python Modules for JACK
 -----------------------------
