@@ -36,7 +36,7 @@ Version 0.4.1 (2016-05-24):
 
 Version 0.4.0 (2015-09-17):
  * new argument to xrun callback (see `jack.Client.set_xrun_callback()`),
-   `jack.Client.xrun_delayed_usecs` was removed
+   ``jack.Client.xrun_delayed_usecs`` was removed
  * `jack.Client.transport_reposition_struct()`
  * callbacks no longer have to return anything, instead they can raise
    `jack.CallbackExit` on error

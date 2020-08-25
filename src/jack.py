@@ -2820,7 +2820,7 @@ def get_property(subject, key):
     Client.remove_property
     Client.remove_properties
     Client.remove_all_properties
-    set_property_change_callback
+    Client.set_property_change_callback
 
     """
     subject = _uuid_parse(subject)
@@ -2856,7 +2856,7 @@ def get_properties(subject):
     Client.remove_property
     Client.remove_properties
     Client.remove_all_properties
-    set_property_change_callback
+    Client.set_property_change_callback
 
     """
     subject = _uuid_parse(subject)
@@ -2886,7 +2886,7 @@ def get_all_properties():
     Client.remove_property
     Client.remove_properties
     Client.remove_all_properties
-    set_property_change_callback
+    Client.set_property_change_callback
 
     """
     descs = _ffi.new('jack_description_t**')
