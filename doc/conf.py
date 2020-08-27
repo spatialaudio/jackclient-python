@@ -22,6 +22,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',  # support for NumPy-style docstrings
+    'sphinx_last_updated_by_git',
 ]
 
 autoclass_content = 'init'
