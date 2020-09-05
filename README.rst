@@ -32,7 +32,7 @@ pip/setuptools:
    page.
    If you happen to have ``pip`` but not ``setuptools``, use this command::
 
-      python3 -m pip install setuptools --user
+      python3 -m pip install setuptools
 
    To upgrade to a newer version of an already installed package (including
    ``pip`` itself), use the ``--upgrade`` flag.
@@ -45,7 +45,7 @@ CFFI:
    manager (the package might be called ``python3-cffi`` or similar), or you can
    get it with::
 
-      python3 -m pip install cffi --user
+      python3 -m pip install cffi
 
 JACK library:
    The JACK_ library must be installed on your system (and CFFI must be able
@@ -66,7 +66,7 @@ NumPy (optional):
    You can also install NumPy with ``pip``, but depending on your platform, this
    might require a compiler and several additional libraries::
 
-      python3 -m pip install NumPy --user
+      python3 -m pip install NumPy
 
 .. _JACK: https://jackaudio.org/
 .. _NumPy: https://numpy.org/
@@ -84,10 +84,8 @@ Installation
 Once you have installed the above-mentioned dependencies, you can use pip
 to download and install the latest release with a single command::
 
-   python3 -m pip install JACK-Client --user
+   python3 -m pip install JACK-Client
 
-If you want to install it system-wide for all users (assuming you have the
-necessary rights), you can just drop the ``--user`` option.
 If you have installed the module already, you can use the ``--upgrade`` flag to
 get the newest release.
 

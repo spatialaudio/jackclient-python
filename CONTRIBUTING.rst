@@ -11,7 +11,7 @@ newest development version from Github_::
 
    git clone https://github.com/spatialaudio/jackclient-python.git
    cd jackclient-python
-   python3 -m pip install --user -e .
+   python3 -m pip install -e .
 
 ... where ``-e`` stands for ``--editable``.
 This way, your installation always stays up-to-date, even if you pull new
@@ -29,7 +29,7 @@ If you make changes to the documentation, you can locally re-create the HTML
 pages using Sphinx_.
 You can install it and a few other necessary packages with::
 
-   python3 -m pip install -r doc/requirements.txt --user
+   python3 -m pip install -r doc/requirements.txt
 
 To create the HTML pages, use::
 
@@ -43,7 +43,7 @@ There are no proper tests (yet?), but the code examples from the README file
 can be verified with pytest_.
 If you haven't installed it already, you can install it with::
 
-   python3 -m pip install pytest ---user
+   python3 -m pip install pytest
 
 As soon as pytest_ is installed, you can run the (rudimentary) tests with::
 
