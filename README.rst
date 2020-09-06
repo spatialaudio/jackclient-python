@@ -86,6 +86,8 @@ to download and install the latest release with a single command::
 
    python3 -m pip install JACK-Client
 
+Depending on your Python installation,
+you may have to use ``python`` instead of ``python3``.
 If you have installed the module already, you can use the ``--upgrade`` flag to
 get the newest release.
 
