@@ -1393,7 +1393,12 @@ class Client(object):
             or the first cycle after `activate()` if the client had been
             inactive.  The *callback* must have this signature::
 
-                callback(state: int, blocksize: int, pos: jack_position_t, new_pos: bool) -> None
+                callback(
+                    state: int,
+                    blocksize: int,
+                    pos: jack_position_t,
+                    new_pos: bool,
+                ) -> None
 
             state
                 The current transport state.  See `transport_state`.
