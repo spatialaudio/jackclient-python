@@ -1,41 +1,17 @@
 .. include:: ../README.rst
 
-.. only:: html
+----
 
-   More Examples
-   -------------
+.. toctree::
 
-   For more examples, have a look at the :doc:`examples`.
-
-.. include:: ../CONTRIBUTING.rst
-
-API Documentation
------------------
-
-.. automodule:: jack
-   :members:
-   :undoc-members:
+   installation
+   usage
+   examples
+   api
+   contributing
+   version-history
+   other-modules
 
 .. only:: html
 
-   Index
-   -----
- 
    :ref:`genindex`
-
-Version History
----------------
-
-.. include:: ../NEWS.rst
-
-Other Python Modules for JACK
------------------------------
-
-PyJack
-   https://sourceforge.net/projects/py-jack/
-
-jacklib from Cadence
-   https://github.com/falkTX/Cadence/blob/master/src/jacklib.py
-
-jacker
-   https://github.com/fphammerle/jacker
