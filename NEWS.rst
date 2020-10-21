@@ -1,3 +1,10 @@
+Version 0.5.3 -- 2020-10-21 -- PyPI__ -- docs__ -- diff__
+ * use ``jack_port_rename()`` instead of deprecated ``jack_port_set_name()``
+
+__ https://pypi.org/project/JACK-Client/0.5.3/
+__ https://jackclient-python.readthedocs.io/en/0.5.3/
+__ https://github.com/spatialaudio/jackclient-python/compare/0.5.2...0.5.3
+
 Version 0.5.2 -- 2020-02-11 -- PyPI__ -- docs__ -- diff__
  * new module constants: ``jack.POSITION_*``
  * new examples: ``timebase_master.py`` and ``transporter.py``,
