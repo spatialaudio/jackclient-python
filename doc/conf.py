@@ -72,6 +72,8 @@ html_show_copyright = False
 
 html_add_permalinks = '\N{SECTION SIGN}'
 
+html_favicon = 'favicon.svg'
+
 html_copy_source = False
 
 # -- Options for LaTeX output ---------------------------------------------
