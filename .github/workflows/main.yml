@@ -68,7 +68,7 @@ jobs:
         python -m pip install -r doc/requirements.txt
     - name: Create HTML docs
       run: |
-        python -m sphinx doc _build/html -d _doctrees -W -b html
+        python -m sphinx -W --keep-going --color -d _build/doctrees doc _build/html -b html
     - name: Check for broken links
       run: |
-        python -m sphinx doc _build/linkcheck -d _doctrees -W -b linkcheck
+        python -m sphinx -W --keep-going --color -d _build/doctrees doc _build/linkcheck -b linkcheck
