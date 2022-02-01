@@ -1,6 +1,9 @@
 Other Python Modules for JACK
 =============================
 
+JACK Client
+-----------
+
 PyJack
    https://sourceforge.net/projects/py-jack/
 
@@ -12,3 +15,13 @@ pyjacklib (based on Cadence)
 
 jacker
    https://github.com/fphammerle/jacker
+
+
+JACK Server
+-----------
+
+jack_server
+   https://github.com/vrslev/jack_server
+
+jackctl.py (part of JACK1)
+   https://github.com/jackaudio/jack1/blob/master/python/jackctl.py
