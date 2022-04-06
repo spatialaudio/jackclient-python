@@ -15,7 +15,7 @@ def new_find_library(name):
 ctypes.util.find_library = new_find_library
 
 
-class Fake(object):
+class Fake:
 
     NULL = NotImplemented
 

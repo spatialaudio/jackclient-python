@@ -17,28 +17,28 @@ if client.status.server_started:
 else:
     print('JACK server was already running')
     if client.status.name_not_unique:
-        print('unique client name generated: {}'.format(client.name))
+        print(f'unique client name generated: {client.name}')
 
 ports = client.get_ports()
 
 print('Testing set_alias() ...')
 for i, port in enumerate(ports):
-    alias_name = 'Alias Name {}'.format(i)
-    print("port '{}' => set_alias('{}')".format(port.shortname,alias_name))
+    alias_name = f'Alias Name {i}'
+    print(f"port '{port.shortname}' => set_alias('{alias_name}')")
     port.set_alias(alias_name)
 
 print('Testing aliases property ...')
 for port in ports:
     for i, alias in enumerate(port.aliases):
-        print("port '{}', alias {} => '{}'".format(port.shortname,i,alias))
+        print(f"port '{port.shortname}', alias {i} => '{alias}'")
 
 print('Testing unset_alias() ...')
 for i, port in enumerate(ports):
-    alias_name = 'Alias Name {}'.format(i)
-    print("port '{}' => unset_alias('{}')".format(port.shortname,alias_name))
+    alias_name = f'Alias Name {i}'
+    print(f"port '{port.shortname}' => unset_alias('{alias_name}')")
     port.unset_alias(alias_name)
 
 print('Testing aliases property ...')
 for port in ports:
     for i, alias in enumerate(port.aliases):
-        print("port '{}', alias {} => '{}'".format(port.shortname,i,alias))
+        print(f"port '{port.shortname}', alias {i} => '{alias}'")

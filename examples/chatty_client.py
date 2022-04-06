@@ -7,7 +7,6 @@ callback and the timebase callback, which would be just too much noise)
 and prints some information whenever they are called.
 
 """
-from __future__ import print_function  # only needed for Python 2.x
 import jack
 
 print('setting error/info functions')
@@ -96,7 +95,7 @@ def xrun(delay):
 try:
     @client.set_property_change_callback
     def property_change(subject, key, changed):
-        print('subject {}: '.format(subject), end='')
+        print(f'subject {subject}: ', end='')
         if not key:
             assert changed == jack.PROPERTY_DELETED
             print('all properties were removed')

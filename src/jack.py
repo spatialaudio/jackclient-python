@@ -119,7 +119,7 @@ class JackErrorCode(JackError):
         self.code = code
 
     def __str__(self):
-        return '{} ({})'.format(self.message, self.code)
+        return f'{self.message} ({self.code})'
 
 
 class JackOpenError(JackError):
@@ -144,10 +144,10 @@ class JackOpenError(JackError):
         self.status = status
 
     def __str__(self):
-        return 'Error initializing "{}": {}'.format(self.name, self.status)
+        return f'Error initializing "{self.name}": {self.status}'
 
 
-class Client(object):
+class Client:
     """A client that can connect to the JACK audio server."""
 
     def __init__(self, name, use_exact_name=False, no_start_server=False,
@@ -492,11 +492,11 @@ class Client(object):
         err = _lib.jack_connect(self._ptr, source.encode(),
                                 destination.encode())
         if err == _errno.EEXIST:
-            raise JackErrorCode('Connection {0!r} -> {1!r} '
+            raise JackErrorCode('Connection {!r} -> {!r} '
                                 'already exists'.format(source, destination),
                                 err)
         _check(err,
-               'Error connecting {0!r} -> {1!r}'.format(source, destination))
+               f'Error connecting {source!r} -> {destination!r}')
 
     def disconnect(self, source, destination):
         """Remove a connection between two ports.
@@ -513,7 +513,7 @@ class Client(object):
             destination = destination.name
         _check(_lib.jack_disconnect(
             self._ptr, source.encode(), destination.encode()),
-            "Couldn't disconnect {0!r} -> {1!r}".format(source, destination))
+            f"Couldn't disconnect {source!r} -> {destination!r}")
 
     def transport_start(self):
         """Start JACK transport."""
@@ -1495,7 +1495,7 @@ class Client(object):
         uuid = _ffi.gc(_lib.jack_get_uuid_for_client_name(
             self._ptr, name.encode()), _lib.jack_free)
         if not uuid:
-            raise JackError('Unable to get session ID for {0!r}'.format(name))
+            raise JackError(f'Unable to get session ID for {name!r}')
         return _decode(uuid)
 
     def get_client_name_by_uuid(self, uuid):
@@ -1513,7 +1513,7 @@ class Client(object):
         name = _ffi.gc(_lib.jack_get_client_name_by_uuid(
             self._ptr, uuid.encode()), _lib.jack_free)
         if not name:
-            raise JackError('Unable to get client name for {0!r}'.format(uuid))
+            raise JackError(f'Unable to get client name for {uuid!r}')
         return _decode(name)
 
     def get_port_by_name(self, name):
@@ -1530,7 +1530,7 @@ class Client(object):
         """
         port_ptr = _lib.jack_port_by_name(self._ptr, name.encode())
         if not port_ptr:
-            raise JackError('Port {0!r} not available'.format(name))
+            raise JackError(f'Port {name!r} not available')
         return self._wrap_port_ptr(port_ptr)
 
     def get_all_connections(self, port):
@@ -1706,7 +1706,7 @@ class Client(object):
         number = _lib.jack_remove_properties(self._ptr, subject)
         if number < 0:
             raise RuntimeError(
-                'Unable to remove properties for subject {!r}'.format(subject))
+                f'Unable to remove properties for subject {subject!r}')
         return number
 
     def remove_all_properties(self):
@@ -1758,7 +1758,7 @@ class Client(object):
                                            flags, 0)
         if not port_ptr:
             raise JackError(
-                '{0!r}: port registration failed'.format(name))
+                f'{name!r}: port registration failed')
         return self._wrap_port_ptr(port_ptr)
 
     def _port_list_from_pointers(self, names):
@@ -1794,7 +1794,7 @@ class Client(object):
         return cls(ptr, self)
 
 
-class Port(object):
+class Port:
     """A JACK audio port.
 
     This class cannot be instantiated directly.  Instead, instances of
@@ -1862,7 +1862,7 @@ class Port(object):
     @property
     def aliases(self):
         """Returns a list of strings with the aliases for the JACK port."""
-        ctype = 'char[{}]'.format(_lib.jack_port_name_size())
+        ctype = f'char[{_lib.jack_port_name_size()}]'
         aliases = [_ffi.new(ctype), _ffi.new(ctype)]
         aliasesptr = _ffi.new('char *[]', aliases)
         result = []
@@ -2049,7 +2049,7 @@ class OwnPort(Port):
         """
         if other is None:
             _check(_lib.jack_port_disconnect(self._client._ptr, self._ptr),
-                   'Error disconnecting {0!r}'.format(self.name))
+                   f'Error disconnecting {self.name!r}')
         else:
             if self.is_output:
                 args = self, other
@@ -2077,7 +2077,7 @@ class OwnPort(Port):
         ports = getattr(self._client, listname)
         ports._portlist.remove(self)
         _check(_lib.jack_port_unregister(self._client._ptr, self._ptr),
-               'Error unregistering {0!r}'.format(self.name))
+               f'Error unregistering {self.name!r}')
 
     def get_buffer(self):
         """Get buffer for audio data.
@@ -2283,7 +2283,7 @@ class OwnMidiPort(MidiPort, OwnPort):
         return _ffi.buffer(buf, size if buf else 0)
 
 
-class Ports(object):
+class Ports:
     """A list of input/output ports.
 
     This class is not meant to be instantiated directly.  It is only
@@ -2373,7 +2373,7 @@ class Ports(object):
             self._portlist[0].unregister()
 
 
-class RingBuffer(object):
+class RingBuffer:
     """JACK's lock-free ringbuffer."""
 
     def __init__(self, size):
@@ -2625,7 +2625,7 @@ class RingBuffer(object):
         return self._ptr.size
 
 
-class Status(object):
+class Status:
     """Representation of the JACK status bits."""
 
     __slots__ = '_code'
@@ -2638,7 +2638,7 @@ class Status(object):
                           if not name.startswith('_') and getattr(self, name))
         if not flags:
             flags = 'no flags set'
-        return '<jack.Status 0x{0:X}: {1}>'.format(self._code, flags)
+        return f'<jack.Status 0x{self._code:X}: {flags}>'
 
     @property
     def failure(self):
@@ -2723,7 +2723,7 @@ class Status(object):
         return bool(self._code & flag)
 
 
-class TransportState(object):
+class TransportState:
     """Representation of the JACK transport state.
 
     See Also
@@ -2779,9 +2779,9 @@ def _uuid_parse(uuid):
     elif isinstance(uuid, str):
         uuid_ptr = _ffi.new('jack_uuid_t*')
         if _lib.jack_uuid_parse(uuid.encode(), uuid_ptr) != 0:
-            raise ValueError('Unable to parse UUID: {!r}'.format(uuid))
+            raise ValueError(f'Unable to parse UUID: {uuid!r}')
         return uuid_ptr[0]
-    raise TypeError('Invalid UUID: {!r}'.format(uuid))
+    raise TypeError(f'Invalid UUID: {uuid!r}')
 
 
 def _description_to_dict(desc):
@@ -2869,7 +2869,7 @@ def get_properties(subject):
     number = _lib.jack_get_properties(subject, desc)
     if number < 0:
         raise RuntimeError(
-            'Unable to get properties for subject {!r}'.format(subject))
+            f'Unable to get properties for subject {subject!r}')
     assert number == desc.property_cnt
     return _description_to_dict(desc)
 
@@ -2924,7 +2924,7 @@ def position2dict(pos):
     if pos.valid & _lib.JackVideoFrameOffset:
         keys += ['video_offset']
 
-    return dict((k, getattr(pos, k)) for k in keys)
+    return {k: getattr(pos, k) for k in keys}
 
 
 def version():

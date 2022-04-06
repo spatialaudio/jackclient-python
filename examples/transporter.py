@@ -25,21 +25,21 @@ def main(args=None):
     try:
         client = jack.Client(args.client_name)
     except jack.JackError as exc:
-        ap.exit('Could not create JACK client: {}'.format(exc))
+        ap.exit(f'Could not create JACK client: {exc}')
 
     state = client.transport_state
     result = 0
 
     if args.command == 'status':
-        print('JACK transport state is {}.'.format(state))
+        print(f'JACK transport state is {state}.')
         result = 1 if state == jack.STOPPED else 0
     elif args.command == 'query':
-        print('State: {}'.format(state))
+        print(f'State: {state}')
         info = client.transport_query()[1]
 
         for field in sorted(info):
             label = string.capwords(field.replace('_', ' '))
-            print('{}: {}'.format(label, info[field]))
+            print(f'{label}: {info[field]}')
 
         result = 1 if state == jack.STOPPED else 0
     elif args.command == 'start':

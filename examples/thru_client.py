@@ -10,20 +10,10 @@ acoustical feedback!
 
 """
 import sys
-import signal
 import os
 import jack
 import threading
 
-if sys.version_info < (3, 0):
-    # In Python 2.x, event.wait() cannot be interrupted with Ctrl+C.
-    # Therefore, we disable the whole KeyboardInterrupt mechanism.
-    # This will not close the JACK client properly, but at least we can
-    # use Ctrl+C.
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-else:
-    # If you use Python 3.x, everything is fine.
-    pass
 
 argv = iter(sys.argv)
 # By default, use script name without extension as client name:
@@ -36,7 +26,7 @@ client = jack.Client(clientname, servername=servername)
 if client.status.server_started:
     print('JACK server started')
 if client.status.name_not_unique:
-    print('unique name {0!r} assigned'.format(client.name))
+    print(f'unique name {client.name!r} assigned')
 
 event = threading.Event()
 
@@ -59,8 +49,8 @@ def shutdown(status, reason):
 
 # create two port pairs
 for number in 1, 2:
-    client.inports.register('input_{0}'.format(number))
-    client.outports.register('output_{0}'.format(number))
+    client.inports.register(f'input_{number}')
+    client.outports.register(f'output_{number}')
 
 with client:
     # When entering this with-statement, client.activate() is called.

@@ -10,8 +10,6 @@ NumPy and the soundfile module (http://PySoundFile.rtfd.io/) must be
 installed for this to work.
 
 """
-from __future__ import division
-from __future__ import print_function
 import argparse
 try:
     import queue  # Python 3.x
@@ -87,7 +85,7 @@ try:
 
     with sf.SoundFile(args.filename) as f:
         for ch in range(f.channels):
-            client.outports.register('out_{0}'.format(ch + 1))
+            client.outports.register(f'out_{ch + 1}')
         block_generator = f.blocks(blocksize=blocksize, dtype='float32',
                                    always_2d=True, fill_value=0)
         for _, data in zip(range(args.buffersize), block_generator):

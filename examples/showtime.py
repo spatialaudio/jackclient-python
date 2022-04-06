@@ -25,7 +25,7 @@ def showtime():
     items = []
     items.append('frame = {}  frame_time = {} usecs = {} '.format(
         pos['frame'], client.frame_time, pos['usecs']))
-    items.append('state: {}'.format(state))
+    items.append(f'state: {state}')
     with suppress(KeyError):
         items.append('BBT: {bar:3}|{beat}|{tick:04}'.format(**pos))
     with suppress(KeyError):
@@ -38,7 +38,7 @@ def showtime():
     with suppress(KeyError):
         video_offset = pos['video_offset']
         if video_offset:
-            items.append(' video@: ({})'.format(video_offset))
+            items.append(f' video@: ({video_offset})')
         else:
             items.append(' no video');
     print(*items, sep='\t')

@@ -26,7 +26,7 @@ def slow_sync_callback(state, pos):
             slow.pos = pos.frame
             slow.ready_at = None
             return True
-        print('will be ready in {:.2f} seconds'.format(slow.ready_at - now))
+        print(f'will be ready in {slow.ready_at - now:.2f} seconds')
     elif state == jack.STARTING:
         if slow.pos == pos.frame:
             print('ready')
@@ -38,7 +38,7 @@ def slow_sync_callback(state, pos):
             slow.pos = pos.frame
             slow.ready_at = None
             return True
-        print('will be ready in {:.2f} seconds'.format(slow.ready_at - now))
+        print(f'will be ready in {slow.ready_at - now:.2f} seconds')
         return False
     elif state == jack.ROLLING:
         assert slow.pos != pos.frame
@@ -48,7 +48,7 @@ def slow_sync_callback(state, pos):
             slow.pos = pos.frame
             slow.ready_at = None
             return True
-        print('will catch up in {:.2f} seconds'.format(slow.ready_at - now))
+        print(f'will catch up in {slow.ready_at - now:.2f} seconds')
         return False
     else:
         assert False

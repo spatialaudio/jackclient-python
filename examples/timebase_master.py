@@ -118,7 +118,7 @@ def main(args=None):
             ticks_per_beat=args.ticks_per_beat,
             debug=args.debug)
     except jack.JackError as exc:
-        ap.exit('Could not create timebase master JACK client: {}'.format(exc))
+        ap.exit(f'Could not create timebase master JACK client: {exc}')
 
     with tbmaster:
         if tbmaster.become_timebase_master(args.conditional):
