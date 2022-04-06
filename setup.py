@@ -15,7 +15,7 @@ setup(
     py_modules=['jack'],
     setup_requires=['CFFI>=1.0'],
     install_requires=['CFFI>=1.0'],
-    python_requires='>=3',
+    python_requires='>=3.7',
     extras_require={'NumPy': ['NumPy']},
     cffi_modules=['jack_build.py:ffibuilder'],
     author='Matthias Geier',
