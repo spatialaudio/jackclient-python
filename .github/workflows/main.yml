@@ -11,9 +11,6 @@ jobs:
           python-version: "3.10"
           jack: jackd2
         - os: ubuntu-latest
-          python-version: "3.6"
-          jack: jackd2
-        - os: ubuntu-latest
           python-version: "3.10"
           jack: jackd1
         - os: macos-latest
