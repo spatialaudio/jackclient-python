@@ -1,3 +1,10 @@
+Version 0.5.4 -- 2022-06-04 -- PyPI__ -- docs__ -- diff__
+ * drop Python 3.6 support
+
+__ https://pypi.org/project/JACK-Client/0.5.4/
+__ https://jackclient-python.readthedocs.io/en/0.5.4/
+__ https://github.com/spatialaudio/jackclient-python/compare/0.5.3...0.5.4
+
 Version 0.5.3 -- 2020-10-21 -- PyPI__ -- docs__ -- diff__
  * use ``jack_port_rename()`` instead of deprecated ``jack_port_set_name()``
 
