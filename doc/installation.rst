@@ -76,7 +76,7 @@ NumPy (optional):
 .. _JACK: https://jackaudio.org/
 .. _NumPy: https://numpy.org/
 .. _Python: https://www.python.org/
-.. _Anaconda: https://www.anaconda.com/products/individual#Downloads
+.. _Anaconda: https://www.anaconda.com/download#downloads
 .. _WinPython: http://winpython.github.io/
 .. _C Foreign Function Interface for Python: https://cffi.readthedocs.org/
 .. _PyPy: https://www.pypy.org/
