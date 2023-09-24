@@ -30,15 +30,16 @@ jobs:
         brew install jack
     - name: Install JACK on Windows
       if: startsWith(matrix.os, 'windows')
+      # Inspired by https://github.com/supercollider/supercollider/blob/develop/.github/workflows/actions.yml
+      shell: bash
       run: |
-        choco install --no-progress jack
-    - name: Start jackd with "dummy" backend (Windows)
-      if: startsWith(matrix.os, 'windows')
-      working-directory: "C:\\Program Files\\JACK2"
-      run: |
-        cmd /c "start /b jackd --no-realtime -d dummy"
-    - name: Start jackd with "dummy" backend (non-Windows)
-      if: ${{ !startsWith(matrix.os, 'windows') }}
+        JACK2_RELEASE=v1.9.22
+        curl -O -J -L https://github.com/jackaudio/jack2-releases/releases/download/$JACK2_RELEASE/jack2-win64-$JACK2_RELEASE.exe
+        ./jack2-win64-$JACK2_RELEASE.exe //SILENT //SUPPRESSMSGBOXES
+        echo "/c/Program Files/JACK2" >> $GITHUB_PATH
+    - name: Start jackd with "dummy" backend
+      # With "bash", this works even on Windows!
+      shell: bash
       run: |
         jackd --no-realtime -d dummy &
     - name: Set up Python ${{ matrix.python-version }}
