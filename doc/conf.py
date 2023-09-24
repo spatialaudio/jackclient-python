@@ -70,7 +70,7 @@ html_domain_indices = False
 
 html_show_copyright = False
 
-html_permalinks_icon = '§'
+html_permalinks_icon = '#'
 
 html_favicon = 'favicon.svg'
 
