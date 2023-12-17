@@ -5,7 +5,7 @@ JACK Client
 -----------
 
 PyJack
-   https://sourceforge.net/projects/py-jack/
+   ``https://sourceforge.net/projects/py-jack/``, https://github.com/umlaeute/pyjack
 
 jacklib from Cadence
    https://github.com/falkTX/Cadence/blob/master/src/jacklib.py
