@@ -41,7 +41,10 @@ else:
     _libname = _find_library('jack')
 
 if _libname is None:
-    raise OSError('JACK library not found')
+    if _platform.system() == 'Darwin' and _platform.machine() == 'arm64':
+        _libname = '/opt/homebrew/lib/libjack.dylib'
+    else:
+        raise OSError('JACK library not found')
 _lib = _ffi.dlopen(_libname)
 
 _AUDIO = b'32 bit float mono audio'
