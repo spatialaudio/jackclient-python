@@ -11,6 +11,9 @@ jobs:
           jack: jackd2
         - os: ubuntu-latest
           jack: jackd1
+        # x86_64:
+        - os: macos-13
+        # arm64:
         - os: macos-latest
         - os: windows-latest
     runs-on: ${{ matrix.os }}
