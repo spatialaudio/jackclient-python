@@ -1,3 +1,10 @@
+Version 0.5.5 -- 2024-11-01 -- PyPI__ -- docs__ -- diff__
+ * Set explicit ``.dylib`` path for macOS/arm64
+
+__ https://pypi.org/project/JACK-Client/0.5.5/
+__ https://jackclient-python.readthedocs.io/en/0.5.5/
+__ https://github.com/spatialaudio/jackclient-python/compare/0.5.4...0.5.5
+
 Version 0.5.4 -- 2022-06-04 -- PyPI__ -- docs__ -- diff__
  * drop Python 3.6 support
 

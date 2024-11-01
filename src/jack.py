@@ -23,7 +23,7 @@
 http://jackclient-python.readthedocs.io/
 
 """
-__version__ = '0.5.4'
+__version__ = '0.5.5'
 
 from ctypes.util import find_library as _find_library
 import errno as _errno
