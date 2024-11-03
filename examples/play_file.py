@@ -40,7 +40,7 @@ def print_error(*args):
 
 
 def xrun(delay):
-    print_error("An xrun occured, increase JACK's period size?")
+    print_error("An xrun occurred, increase JACK's period size?")
 
 
 def shutdown(status, reason):
@@ -109,7 +109,7 @@ try:
 except KeyboardInterrupt:
     parser.exit('\nInterrupted by user')
 except (queue.Full):
-    # A timeout occured, i.e. there was an error in the callback
+    # A timeout occurred, i.e. there was an error in the callback
     parser.exit(1)
 except Exception as e:
     parser.exit(type(e).__name__ + ': ' + str(e))
