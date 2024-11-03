@@ -729,7 +729,7 @@ class Client:
 
                After server shutdown, the client is *not* deallocated by
                JACK, the user (that's you!) is responsible to properly
-               use `close()` to release client ressources.
+               use `close()` to release client resources.
                Alternatively, the `Client` object can be used as a
                *context manager* in a *with statement*, which takes care
                of activating, deactivating and closing the client
@@ -1256,7 +1256,7 @@ class Client:
         ----------
         callback : callable
             User-supplied function that is called whenever an xrun has
-            occured.  It must have this signature::
+            occurred.  It must have this signature::
 
                 callback(delayed_usecs: float) -> None
 
