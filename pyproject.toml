@@ -33,7 +33,7 @@ doc = [
 ]
 
 [tool.setuptools]
-py-modules = ["jack"]
+py-modules = ["jack", "_jack"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
