@@ -7,6 +7,7 @@ build:
     post_checkout:
       - git fetch --unshallow || true
     install:
+      - pip install --upgrade pip
       - pip install --group doc .
 sphinx:
   configuration: doc/conf.py
