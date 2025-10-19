@@ -1,6 +1,7 @@
 name: Run Tests
 on: [push, pull_request]
 env:
+  UV_PYTHON_DOWNLOADS: never
   PYTEST_ADDOPTS: "--color=yes"
 jobs:
   tests:
@@ -12,7 +13,7 @@ jobs:
         - os: ubuntu-latest
           jack: jackd1
         # x86_64:
-        - os: macos-13
+        - os: macos-15-intel
         # arm64:
         - os: macos-latest
         - os: windows-latest
@@ -41,40 +42,30 @@ jobs:
       shell: bash
       run: |
         jackd --no-realtime -d dummy &
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: "3"
-    - name: Double-check Python version
-      run: |
-        python --version
     - uses: actions/checkout@v5
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
     - name: Install Python package
       run: |
-        python -m pip install .
-    - name: Install pytest
-      run: |
-        python -m pip install pytest
+        uv sync --locked
+        uv run jack_build.py
     - name: Run tests
       run: |
-        python -m pytest
+        uv run pytest
 
   docs:
     runs-on: ubuntu-latest
     steps:
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: "3"
-    - name: Double-check Python version
-      run: |
-        python --version
     - uses: actions/checkout@v5
       with:
         fetch-depth: 0
+    - name: Double-check Python version
+      run: |
+        python --version
     - name: Install doc dependencies
       run: |
-        python -m pip install -r doc/requirements.txt
+        python -m pip install --upgrade pip
+        python -m pip install --group doc
     - name: Create HTML docs
       run: |
         python -m sphinx -W --keep-going --color -d _build/doctrees doc _build/html -b html

@@ -11,7 +11,8 @@ newest development version from Github_::
 
    git clone https://github.com/spatialaudio/jackclient-python.git
    cd jackclient-python
-   python3 -m pip install -e .
+   python -m pip install -e .
+   python jack_build.py
 
 ... where ``-e`` stands for ``--editable``.
 This way, your installation always stays up-to-date, even if you pull new
@@ -29,13 +30,13 @@ If you make changes to the documentation, you can locally re-create the HTML
 pages using Sphinx_.
 You can install it and a few other necessary packages with::
 
-   python3 -m pip install -r doc/requirements.txt
+   python -m pip install -r doc/requirements.txt
 
 To create the HTML pages, use::
 
-   python3 setup.py build_sphinx
+   python -m sphinx doc _build
 
-The generated files will be available in the directory ``build/sphinx/html/``.
+The generated files will be available in the directory ``_build/``.
 
 .. _Sphinx: https://www.sphinx-doc.org/
 
@@ -43,10 +44,10 @@ There are no proper tests (yet?), but the code examples from the README file
 can be verified with pytest_.
 If you haven't installed it already, you can install it with::
 
-   python3 -m pip install pytest
+   python -m pip install pytest
 
 As soon as pytest_ is installed, you can run the (rudimentary) tests with::
 
-   python3 -m pytest
+   python -m pytest
 
 .. _pytest: https://pytest.org/

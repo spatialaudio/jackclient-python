@@ -1,6 +1,0 @@
-include LICENSE
-include jack_build.py
-include *.rst
-include doc/requirements.txt
-recursive-include doc *.rst *.py
-recursive-include examples *.py
