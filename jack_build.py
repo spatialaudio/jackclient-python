@@ -318,4 +318,4 @@ struct _jack_position {
 """, packed=True)
 
 if __name__ == '__main__':
-    ffibuilder.compile(verbose=True)
+    ffibuilder.compile(tmpdir='src', verbose=True)

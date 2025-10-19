@@ -13,7 +13,7 @@ jobs:
         - os: ubuntu-latest
           jack: jackd1
         # x86_64:
-        - os: macos-13
+        - os: macos-15-intel
         # arm64:
         - os: macos-latest
         - os: windows-latest
@@ -48,6 +48,7 @@ jobs:
     - name: Install Python package
       run: |
         uv sync --locked
+        uv run jack_build.py
     - name: Run tests
       run: |
         uv run pytest

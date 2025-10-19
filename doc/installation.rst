@@ -6,16 +6,16 @@ Installation
 
 You can use ``pip`` to install the ``jack`` module::
 
-   python3 -m pip install JACK-Client
+   python -m pip install JACK-Client
 
 Depending on your Python installation (see `Requirements`_ below),
-you may have to use ``python`` instead of ``python3``.
+you may have to use ``python3`` instead of ``python``.
 If you have installed the module already, you can use the ``--upgrade`` flag to
 get the newest release.
 
 To un-install, use::
 
-   python3 -m pip uninstall JACK-Client
+   python -m pip uninstall JACK-Client
 
 Requirements
 ------------
@@ -38,7 +38,7 @@ pip/setuptools:
    page.
    If you happen to have ``pip`` but not ``setuptools``, use this command::
 
-      python3 -m pip install setuptools
+      python -m pip install setuptools
 
    To upgrade to a newer version of an already installed package (including
    ``pip`` itself), use the ``--upgrade`` flag.
@@ -71,7 +71,7 @@ NumPy (optional):
    You can also install NumPy with ``pip``, but depending on your platform, this
    might require a compiler and several additional libraries::
 
-      python3 -m pip install NumPy
+      python -m pip install NumPy
 
 .. _JACK: https://jackaudio.org/
 .. _NumPy: https://numpy.org/
