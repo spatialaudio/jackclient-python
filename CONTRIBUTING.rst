@@ -6,48 +6,68 @@ please create an issue or a pull request at
 https://github.com/spatialaudio/jackclient-python.
 Contributions are always welcome!
 
-Instead of pip-installing the latest release from PyPI, you should get the
-newest development version from Github_::
+Instead of installing the latest release from PyPI_, you should get the
+newest development version from GitHub_::
 
    git clone https://github.com/spatialaudio/jackclient-python.git
    cd jackclient-python
-   python -m pip install -e .
-   python jack_build.py
+   uv sync
+   uv run jack_build.py
 
-... where ``-e`` stands for ``--editable``.
 This way, your installation always stays up-to-date, even if you pull new
-changes from the Github repository.
+changes from the GitHub repository.
 
-.. _Github: https://github.com/spatialaudio/jackclient-python/
+.. _PyPI: https://pypi.org/project/JACK-Client/
+.. _GitHub: https://github.com/spatialaudio/jackclient-python/
 
 .. note::
 
    Whenever the file ``jack_build.py`` changes (either because you edited it or
-   it was updated by pulling from Github or switching branches), you have to
+   it was updated by pulling from GitHub or switching branches), you have to
    run the last command again.
 
-If you make changes to the documentation, you can locally re-create the HTML
-pages using Sphinx_.
-You can install it and a few other necessary packages with::
 
-   python -m pip install -r doc/requirements.txt
+Building the Documentation
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To create the HTML pages, use::
+If you make changes to the documentation,
+you can locally re-create the HTML pages using Sphinx_
+(which will be automatically installed as part of the development dependencies).
+From the main ``jackclient-python`` directory, run::
 
-   python -m sphinx doc _build
+   uv run sphinx-build doc _build
 
 The generated files will be available in the directory ``_build/``.
 
 .. _Sphinx: https://www.sphinx-doc.org/
 
-There are no proper tests (yet?), but the code examples from the README file
-can be verified with pytest_.
-If you haven't installed it already, you can install it with::
+While working on the documentation, it might be helpful to re-run Sphinx
+whenever something changes.  This can be done with::
 
-   python -m pip install pytest
+    uv run --with sphinx-autobuild sphinx-autobuild doc _build
 
-As soon as pytest_ is installed, you can run the (rudimentary) tests with::
+Running the Tests
+^^^^^^^^^^^^^^^^^
 
-   python -m pytest
+There are no proper tests (yet?), but the code examples in the documentation
+can be verified with pytest_ (which is also part of the development dependencies).
+You can run the (rudimentary) tests with::
+
+   uv run python -m pytest
 
 .. _pytest: https://pytest.org/
+
+
+Editable Installation
+^^^^^^^^^^^^^^^^^^^^^
+
+If you want to work in a different directory on your own files,
+but using the latest development version (or a custom branch) of
+the ``jack`` module, you can switch to a directory of your choice
+and enter this::
+
+   uv init --bare
+   uv add --editable --no-workspace path/to/your/jackclient-python/repo
+
+You can install further packages with ``uv add`` and then run
+whatever you need with ``uv run``.
