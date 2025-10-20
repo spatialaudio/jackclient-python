@@ -44,7 +44,7 @@ jobs:
         jackd --no-realtime -d dummy &
     - uses: actions/checkout@v5
     - name: Install uv
-      uses: astral-sh/setup-uv@v6
+      uses: astral-sh/setup-uv@v7
     - name: Install Python package
       run: |
         uv sync --locked
