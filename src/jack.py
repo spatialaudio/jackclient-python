@@ -1048,7 +1048,10 @@ class Client:
         def callback_wrapper(port_id, register, _):
             port_ptr = _lib.jack_port_by_id(self._ptr, port_id)
             if port_ptr:
-                port = self._wrap_port_ptr(port_ptr)
+                try:
+                    port = self._wrap_port_ptr(port_ptr)
+                except AssertionError:
+                    return
             elif only_available:
                 return
             else:
@@ -1121,7 +1124,10 @@ class Client:
             for idx in 0, 1:
                 ptr = _lib.jack_port_by_id(self._ptr, port_ids[idx])
                 if ptr:
-                    ports[idx] = self._wrap_port_ptr(ptr)
+                    try:
+                        ports[idx] = self._wrap_port_ptr(ptr)
+                    except AssertionError:
+                        return
                 elif only_available:
                     return
                 else:
@@ -1184,7 +1190,10 @@ class Client:
         def callback_wrapper(port_id, old_name, new_name, _):
             port_ptr = _lib.jack_port_by_id(self._ptr, port_id)
             if port_ptr:
-                port = self._wrap_port_ptr(port_ptr)
+                try:
+                    port = self._wrap_port_ptr(port_ptr)
+                except AssertionError:
+                    return
             elif only_available:
                 return
             else:
@@ -1534,7 +1543,13 @@ class Client:
         port_ptr = _lib.jack_port_by_name(self._ptr, name.encode())
         if not port_ptr:
             raise JackError(f'Port {name!r} not available')
-        return self._wrap_port_ptr(port_ptr)
+    
+        try:
+            port = self._wrap_port_ptr(port_ptr)
+        except AssertionError:
+            raise JackError(f'Port {name!r} not audio or midi')
+            
+        return port
 
     def get_all_connections(self, port):
         """Return a list of ports which the given port is connected to.
@@ -1762,7 +1777,13 @@ class Client:
         if not port_ptr:
             raise JackError(
                 f'{name!r}: port registration failed')
-        return self._wrap_port_ptr(port_ptr)
+        
+        try:
+            port = self._wrap_port_ptr(port_ptr)
+        except AssertionError:
+            raise JackError(
+                f'{name!r}: port registration failed, not audio or midi')
+        return port
 
     def _port_list_from_pointers(self, names):
         """Get list of Port objects from char**."""
