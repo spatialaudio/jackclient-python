@@ -42,7 +42,7 @@ jobs:
       shell: bash
       run: |
         jackd --no-realtime -d dummy &
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Install uv
       uses: astral-sh/setup-uv@v7
     - name: Install Python package
@@ -56,7 +56,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
     - name: Double-check Python version
