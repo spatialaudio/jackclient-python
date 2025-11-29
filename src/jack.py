@@ -1793,7 +1793,7 @@ class Client:
         elif porttype == _MIDI:
             cls = OwnMidiPort if self.owns(ptr) else MidiPort
         else:
-            assert False
+            cls = UnknownPort
         return cls(ptr, self)
 
 
@@ -1897,6 +1897,11 @@ class Port:
                'Error unsetting port alias')
 
     @property
+    def type(self):
+        """Name of the JACK port type (read-only)."""
+        return _decode(_lib.jack_port_type(self._ptr))    
+
+    @property
     def uuid(self):
         """The UUID of the JACK port."""
         return _lib.jack_port_uuid(self._ptr)
@@ -1970,6 +1975,17 @@ class MidiPort(Port):
 
     is_audio = property(lambda self: False, doc='This is always ``False``.')
     is_midi = property(lambda self: True, doc='This is always ``True``.')
+
+
+class UnknownPort(Port):
+    """A JACK port with an unknown type
+    
+    This class is derived from `Port` and has exactly the same
+    attributes and methods.
+    """
+
+    is_audio = property(lambda self: False, doc='This is always ``False``.')
+    is_midi = property(lambda self: False, doc='This is always ``False``.')
 
 
 class OwnPort(Port):
