@@ -1773,7 +1773,17 @@ class Client:
                 name = names[idx]
                 if not name:
                     break
-                ports.append(self.get_port_by_name(_decode(name)))
+
+                port_ptr = _lib.jack_port_by_name(self._ptr, name)
+                if not port_ptr:
+                    continue
+
+                try:
+                    port = self._wrap_port_ptr(port_ptr)
+                except AssertionError:
+                    continue
+
+                ports.append(port)
                 idx += 1
         return ports
 
