@@ -2,6 +2,7 @@ name: Run Tests
 on: [push, pull_request]
 env:
   UV_PYTHON_DOWNLOADS: never
+  UV_NO_DEV: 1
   PYTEST_ADDOPTS: "--color=yes"
 jobs:
   tests:
@@ -43,15 +44,13 @@ jobs:
       run: |
         jackd --no-realtime -d dummy &
     - uses: actions/checkout@v6
-    - name: Install uv
-      uses: astral-sh/setup-uv@v7
-    - name: Install Python package
+    - uses: astral-sh/setup-uv@v7
+    - name: Install (editable) Python package
       run: |
-        uv sync --locked
-        uv run jack_build.py
+        uv run --locked jack_build.py
     - name: Run tests
       run: |
-        uv run pytest
+        uv run --group test pytest
 
   docs:
     runs-on: ubuntu-latest
