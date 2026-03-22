@@ -374,7 +374,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "typing-extensions", version = "4.7.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.8'" },
     { name = "typing-extensions", version = "4.13.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.8.*'" },
-    { name = "typing-extensions", version = "4.15.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9' and python_full_version < '3.13'" },
+    { name = "typing-extensions", version = "4.15.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9' and python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749, upload-time = "2025-05-10T17:42:51.123Z" }
 wheels = [
@@ -474,7 +474,7 @@ wheels = [
 
 [[package]]
 name = "insipid-sphinx-theme"
-version = "0.4.2"
+version = "0.4.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "docutils", version = "0.19", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.8'" },
@@ -487,9 +487,9 @@ dependencies = [
     { name = "sphinx", version = "8.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
     { name = "sphinx", version = "8.2.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6f/e9/6da4aff327ba6617f4c4e9c34e5c328099a7e4324fbe4ce3e5d01a4b3698/insipid-sphinx-theme-0.4.2.tar.gz", hash = "sha256:03c429bbd9d44da2d42c6446efd0d8ebaa1e7679661131975c888ad4a4895654", size = 73415, upload-time = "2023-08-27T09:19:57.491Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/52/07/47eed162b707be23fb0afcfae76243e60a95220f8270ae56fc67dc2cfb46/insipid_sphinx_theme-0.4.4.tar.gz", hash = "sha256:23297fc0198b484ee42e10a9bb7699642d7944fade05c0d6eb634fc789ed76bc", size = 123908, upload-time = "2025-10-27T20:04:30.288Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/57/4b/42678ae227d0a396cf7bb44151506c117a79aa83fac7565ec98e804f896e/insipid_sphinx_theme-0.4.2-py3-none-any.whl", hash = "sha256:2985bd6f5b388207a14b3154b95d17f3f3d1129e5f4735cb45bdb91c1cf9eb4f", size = 48907, upload-time = "2023-08-27T09:19:55.381Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/84/32a69ce44d08a85011a9dbd6285c9da196786bc8984d0f40dbc7eef9c9a2/insipid_sphinx_theme-0.4.4-py3-none-any.whl", hash = "sha256:41db5643bac6d7d2c10b0a0195af0affc140e5467c86807496e50c978451e74c", size = 49919, upload-time = "2025-10-27T20:04:28.613Z" },
 ]
 
 [[package]]
