@@ -18,6 +18,8 @@ jobs:
         # arm64:
         - os: macos-latest
         - os: windows-latest
+      # macOS often has intermittent failures, which shouldn't cancel other jobs:
+      fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
     - name: Install JACK on Ubuntu
