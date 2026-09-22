@@ -59,6 +59,10 @@ except Exception:
 
 default_role = 'any'
 
+linkcheck_ignore = [
+    # Zstandard data is incomplete
+    'https://www.sphinx-doc.org/',
+]
 
 # -- Options for HTML output ----------------------------------------------
 
