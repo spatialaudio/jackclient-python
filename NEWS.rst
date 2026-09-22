@@ -1,3 +1,10 @@
+Version 0.5.6 -- 2026-09-22 -- PyPI__ -- docs__ -- diff__
+ * add `jack.UnknownPort` type and `jack.Port.type` propery
+
+__ https://pypi.org/project/JACK-Client/0.5.6/
+__ https://jackclient-python.readthedocs.io/en/0.5.6/
+__ https://github.com/spatialaudio/jackclient-python/compare/0.5.5...0.5.6
+
 Version 0.5.5 -- 2024-11-01 -- PyPI__ -- docs__ -- diff__
  * Set explicit ``.dylib`` path for macOS/arm64
 
