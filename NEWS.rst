@@ -1,3 +1,10 @@
+Version 0.5.7 -- 2026-09-23 -- PyPI__ -- docs__ -- diff__
+ * Restore optional NumPy dependency
+
+__ https://pypi.org/project/JACK-Client/0.5.7/
+__ https://jackclient-python.readthedocs.io/en/0.5.7/
+__ https://github.com/spatialaudio/jackclient-python/compare/0.5.6...0.5.7
+
 Version 0.5.6 -- 2026-09-22 -- PyPI__ -- docs__ -- diff__
  * add `jack.UnknownPort` type and `jack.Port.type` propery
 
